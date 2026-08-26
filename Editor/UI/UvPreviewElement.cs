@@ -290,7 +290,11 @@ namespace Dennokoworks.MeshModularizer
             if ((end - _dragStart).magnitude <= ClickThreshold)
             {
                 int group = _topology.PickGroupAtUv(_mode, ToUv(end));
-                if (group >= 0) SelectionRequested?.Invoke(new[] { group }, _addMode);
+                if (group >= 0)
+                {
+                    bool add = !_selection.Contains(group);
+                    SelectionRequested?.Invoke(new[] { group }, add);
+                }
                 return;
             }
 

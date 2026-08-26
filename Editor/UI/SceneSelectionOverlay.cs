@@ -21,6 +21,7 @@ namespace Dennokoworks.MeshModularizer
         private int _hoverGroup = -1;
         private Vector2 _lastHoverPosition = new Vector2(float.NaN, float.NaN);
         private bool _painting;
+        private bool _paintModeRemove;
         private int _lastPaintedGroup = -1;
 
         private Vector3[] _selectedLines = Array.Empty<Vector3>();
@@ -82,18 +83,31 @@ namespace Dennokoworks.MeshModularizer
                     break;
 
                 case EventType.MouseDown:
-                    if (state.SceneSelectionEnabled && IsSelectionDrag(e) && TryPaint(state, e))
+                    if (state.SceneSelectionEnabled && IsSelectionDrag(e))
                     {
-                        _painting = true;
-                        GUIUtility.hotControl = GUIUtility.GetControlID(FocusType.Passive);
-                        e.Use();
+                        int hit = PickGroupUnderMouse(state, SceneView.currentDrawingSceneView, e.mousePosition);
+                        if (hit >= 0)
+                        {
+                            _painting = true;
+                            _paintModeRemove = state.Selection.Contains(hit);
+                            _lastPaintedGroup = hit;
+                            _dispatch(new ModifySelection(new[] { hit }, !_paintModeRemove));
+                            GUIUtility.hotControl = GUIUtility.GetControlID(FocusType.Passive);
+                            e.Use();
+                        }
                     }
                     break;
 
                 case EventType.MouseDrag:
-                    if (_painting && state.SceneSelectionEnabled && TryPaint(state, e))
+                    if (_painting && state.SceneSelectionEnabled)
                     {
-                        e.Use();
+                        int hit = PickGroupUnderMouse(state, SceneView.currentDrawingSceneView, e.mousePosition);
+                        if (hit >= 0 && hit != _lastPaintedGroup)
+                        {
+                            _lastPaintedGroup = hit;
+                            _dispatch(new ModifySelection(new[] { hit }, !_paintModeRemove));
+                            e.Use();
+                        }
                     }
                     break;
 
@@ -125,17 +139,6 @@ namespace Dennokoworks.MeshModularizer
                 _hoverGroup = hit;
                 sceneView.Repaint();
             }
-        }
-
-        private bool TryPaint(MmState state, Event e)
-        {
-            int hit = PickGroupUnderMouse(state, SceneView.currentDrawingSceneView, e.mousePosition);
-            if (hit < 0 || hit == _lastPaintedGroup) return false;
-
-            _lastPaintedGroup = hit;
-            bool add = state.SelectionMode == MmSelectionMode.Add;
-            _dispatch(new ModifySelection(new[] { hit }, add));
-            return true;
         }
 
         private int PickGroupUnderMouse(MmState state, SceneView sceneView, Vector2 mousePos)
