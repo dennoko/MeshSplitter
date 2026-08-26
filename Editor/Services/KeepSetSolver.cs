@@ -7,37 +7,46 @@ namespace Dennokoworks.MeshModularizer
 {
     public sealed class KeepSetOptions
     {
-        public MmComponentPolicy Policy = MmComponentPolicy.KeepAll;
-        public bool KeepPhysBones = true;
-        public bool KeepConstraints = true;
-        public bool RemoveOtherRenderers = true;
+        public bool KeepPhysBones = true;          // 切り出したメッシュに効く PhysBone を維持する
+        public bool KeepPhysBoneColliders = true;  // 維持した PhysBone が参照する Collider を維持する
+        public bool KeepConstraints = true;        // 維持したボーンを駆動する Constraint を維持する
     }
 
     public sealed class KeepSet
     {
         public readonly HashSet<GameObject> Objects = new HashSet<GameObject>();
         public readonly HashSet<Component> Components = new HashSet<Component>();
+
+        /// <summary>切り出したメッシュに影響しないため除去された PhysBone。</summary>
         public readonly List<Component> PurgedPhysBones = new List<Component>();
 
-        /// <summary>複製範囲の外を指していた参照の数 (Prefab 化すると外れる)。</summary>
+        /// <summary>複製範囲の外を指していた参照の数 (Prefab では外れる)。</summary>
         public int ExternalReferenceCount;
     }
 
     /// <summary>
     /// 減算方式の中核。複製したヒエラルキーから「残すべきオブジェクト / コンポーネント」を決定する。
+    ///
+    /// Module Creator (https://github.com/Tliks/ModuleCreator) と同じホワイトリスト方式を採る。
+    /// 起点は切り出し対象の Renderer とそのボーンだけで、そこから
+    /// PhysBone / PhysBoneCollider / Constraint という「メッシュの見た目に効く」種別のみを辿って足す。
+    /// 任意のコンポーネントの参照を推移的に辿ることはしないため、
+    /// VRCAvatarDescriptor や Animator のような無関係なコンポーネントが混ざることはない。
     /// </summary>
     public static class KeepSetSolver
     {
+        /// <param name="rendererBones">複製後の Renderer が参照するボーン (bones / rootBone)。</param>
+        /// <param name="weightedBones">実際にウェイトが載っているボーン。依存追跡の起点になる。</param>
         public static KeepSet Solve(
             Transform scopeRoot,
             Renderer targetRenderer,
             MeshFilter targetFilter,
-            IReadOnlyCollection<Transform> requiredTransforms,
+            IReadOnlyCollection<Transform> rendererBones,
             IReadOnlyCollection<Transform> weightedBones,
             KeepSetOptions options)
         {
-            var solver = new Solver(scopeRoot, targetRenderer, targetFilter, weightedBones, options);
-            return solver.Run(requiredTransforms);
+            var solver = new Solver(scopeRoot, weightedBones, options);
+            return solver.Run(targetRenderer, targetFilter, rendererBones);
         }
 
         /// <summary>
@@ -132,205 +141,246 @@ namespace Dennokoworks.MeshModularizer
 
         private sealed class Solver
         {
-            private readonly Transform _scopeRoot;
-            private readonly Renderer _targetRenderer;
-            private readonly MeshFilter _targetFilter;
-            private readonly HashSet<Transform> _weightedBones;
-            private readonly KeepSetOptions _options;
+            /// <summary>Constraint の相互参照が循環した場合に備えた反復上限。</summary>
+            private const int ConstraintIterationLimit = 64;
 
+            private readonly Transform _scopeRoot;
+            private readonly KeepSetOptions _options;
+            private readonly HashSet<Transform> _weightedBones = new HashSet<Transform>();
             private readonly KeepSet _result = new KeepSet();
-            private readonly HashSet<Component> _dropped = new HashSet<Component>();
-            private readonly Queue<Component> _pending = new Queue<Component>();
-            private readonly List<Component> _all = new List<Component>();
-            private readonly List<Component> _constraints = new List<Component>();
 
             public Solver(
-                Transform scopeRoot, Renderer targetRenderer, MeshFilter targetFilter,
-                IReadOnlyCollection<Transform> weightedBones, KeepSetOptions options)
+                Transform scopeRoot, IReadOnlyCollection<Transform> weightedBones, KeepSetOptions options)
             {
                 _scopeRoot = scopeRoot;
-                _targetRenderer = targetRenderer;
-                _targetFilter = targetFilter;
                 _options = options ?? new KeepSetOptions();
-                _weightedBones = new HashSet<Transform>();
                 if (weightedBones != null)
                 {
                     foreach (var bone in weightedBones)
                     {
-                        if (bone != null) _weightedBones.Add(bone);
+                        if (bone != null && IsInScope(bone)) _weightedBones.Add(bone);
                     }
                 }
             }
 
-            public KeepSet Run(IReadOnlyCollection<Transform> requiredTransforms)
+            public KeepSet Run(
+                Renderer targetRenderer, MeshFilter targetFilter, IReadOnlyCollection<Transform> rendererBones)
             {
-                // 1. 全コンポーネントを収集し、方針で除去するものを先に確定させる。
-                foreach (var component in _scopeRoot.GetComponentsInChildren<Component>(true))
+                // 1. 切り出し対象そのもの。
+                KeepComponent(targetRenderer);
+                KeepComponent(targetFilter);
+
+                if (targetRenderer != null)
                 {
-                    if (component == null || component is Transform) continue;
-                    _all.Add(component);
-                    if (ComponentReflection.IsConstraint(component)) _constraints.Add(component);
-                }
-                foreach (var component in _all)
-                {
-                    if (ShouldDrop(component)) _dropped.Add(component);
+                    KeepReference(targetRenderer.probeAnchor);
+                    if (targetRenderer is SkinnedMeshRenderer skinned) KeepReference(skinned.rootBone);
                 }
 
-                // 2. 種を蒔く。
-                AddComponent(_targetRenderer);
-                AddComponent(_targetFilter);
-                if (requiredTransforms != null)
+                // 2. Renderer が参照するボーンと、ウェイトの載っているボーン。
+                if (rendererBones != null)
                 {
-                    foreach (var transform in requiredTransforms)
-                    {
-                        if (transform != null) AddObject(transform.gameObject);
-                    }
+                    foreach (var bone in rendererBones) KeepReference(bone);
                 }
-                if (_options.Policy == MmComponentPolicy.KeepAll)
-                {
-                    // 全維持方針では、残るコンポーネントを持つオブジェクトは全て生存させる。
-                    foreach (var component in _all) AddComponent(component);
-                }
+                foreach (var bone in _weightedBones) KeepObject(bone.gameObject);
 
-                // 3. 参照の推移閉包を取る。
-                while (true)
-                {
-                    DrainPending();
-                    if (!PullConstraints()) break;
-                }
+                // 3. メッシュの見た目に効く種別だけを辿って足す。
+                CollectPhysBones();
+                CollectConstraints();
 
                 return _result;
             }
 
-            private bool ShouldDrop(Component component)
+            /// <summary>
+            /// 切り出したメッシュのウェイトに影響する PhysBone だけを残す。
+            /// 揺れの形が変わらないよう、影響するボーンから先の単一チェーンも維持する。
+            /// </summary>
+            private void CollectPhysBones()
             {
-                if (ReferenceEquals(component, _targetRenderer)) return false;
-                if (_targetFilter != null && ReferenceEquals(component, _targetFilter)) return false;
-
-                if (PhysBoneBridge.IsPhysBone(component))
+                foreach (var physBone in PhysBoneBridge.FindPhysBones(_scopeRoot))
                 {
-                    if (!_options.KeepPhysBones) return true;
-                    if (!PhysBoneBridge.AffectsAny(component, _weightedBones))
+                    if (physBone == null) continue;
+
+                    if (!_options.KeepPhysBones)
                     {
-                        // 切り出したメッシュのウェイトに一切影響しない PhysBone は方針によらず除去する。
-                        _result.PurgedPhysBones.Add(component);
-                        return true;
+                        _result.PurgedPhysBones.Add(physBone);
+                        continue;
                     }
-                    return false;
-                }
 
-                if (ComponentReflection.IsRendererLike(component))
-                {
-                    return _options.RemoveOtherRenderers
-                           || _options.Policy == MmComponentPolicy.MeshDependenciesOnly;
-                }
-
-                bool isConstraint = ComponentReflection.IsConstraint(component);
-                if (isConstraint && !_options.KeepConstraints) return true;
-
-                if (_options.Policy == MmComponentPolicy.MeshDependenciesOnly)
-                {
-                    // ホワイトリスト: Constraint と PhysBoneCollider のみ生存候補として残す。
-                    // 実際に残るかは参照の推移閉包で決まる。
-                    if (isConstraint) return false;
-                    if (PhysBoneBridge.IsCollider(component)) return false;
-                    return true;
-                }
-
-                return false;
-            }
-
-            private void DrainPending()
-            {
-                while (_pending.Count > 0)
-                {
-                    var component = _pending.Dequeue();
-                    foreach (var reference in ComponentReflection.EnumerateObjectReferences(component))
+                    var chain = new HashSet<Transform>();
+                    foreach (var affected in PhysBoneBridge.GetAffectedTransforms(physBone))
                     {
-                        switch (reference)
+                        if (_weightedBones.Contains(affected)) AddSingleChain(affected, chain);
+                    }
+
+                    if (chain.Count == 0)
+                    {
+                        // ウェイトに一切影響しないので、残しても揺れる先が無い。
+                        _result.PurgedPhysBones.Add(physBone);
+                        continue;
+                    }
+
+                    KeepComponent(physBone);
+                    KeepReference(PhysBoneBridge.GetRoot(physBone));
+                    foreach (var transform in chain) KeepObject(transform.gameObject);
+
+                    if (!_options.KeepPhysBoneColliders) continue;
+                    foreach (var collider in PhysBoneBridge.GetColliders(physBone))
+                    {
+                        if (collider == null) continue;
+                        if (!IsInScope(collider.transform))
                         {
-                            case Transform transform:
-                                VisitObject(transform.gameObject);
-                                break;
-                            case GameObject go:
-                                VisitObject(go);
-                                break;
-                            case Component other:
-                                VisitComponent(other);
-                                break;
+                            _result.ExternalReferenceCount++;
+                            continue;
                         }
+                        KeepComponent(collider);
+                        KeepReference(PhysBoneBridge.GetRoot(collider));
                     }
                 }
             }
 
             /// <summary>
-            /// Constraint は「駆動先のオブジェクトが残るなら残す」。
-            /// 祖先は必ず残るため、駆動先の子孫が残るケースも駆動先自身が残っていることで判定できる。
+            /// 維持したボーン (またはその子孫) を駆動する Constraint を残す。
+            /// Constraint の source 側も維持対象に加わるため、そこから更に別の Constraint が
+            /// 有効になることがある。新規に見つからなくなるまで繰り返す。
             /// </summary>
-            private bool PullConstraints()
+            private void CollectConstraints()
             {
-                if (!_options.KeepConstraints) return false;
-                if (_options.Policy == MmComponentPolicy.KeepAll) return false; // 既に全て投入済み
+                if (!_options.KeepConstraints) return;
 
-                bool added = false;
-                foreach (var constraint in _constraints)
+                var constraints = new List<ConstraintInfo>();
+                foreach (var component in _scopeRoot.GetComponentsInChildren<Component>(true))
                 {
-                    if (constraint == null) continue;
-                    if (_dropped.Contains(constraint)) continue;
-                    if (_result.Components.Contains(constraint)) continue;
-
-                    var target = ComponentReflection.GetConstraintTarget(constraint);
-                    if (target == null || !_result.Objects.Contains(target.gameObject)) continue;
-
-                    AddComponent(constraint);
-                    added = true;
+                    if (component == null || !ComponentReflection.IsConstraint(component)) continue;
+                    constraints.Add(new ConstraintInfo(_scopeRoot, component));
                 }
-                return added;
-            }
+                if (constraints.Count == 0) return;
 
-            private void VisitObject(GameObject go)
-            {
-                if (go == null) return;
-                if (IsInScope(go.transform)) AddObject(go);
-                else if (go.scene.IsValid()) _result.ExternalReferenceCount++;
-            }
+                // 駆動されると見た目が変わるボーンの集合。祖先も含める。
+                var drivenBones = new HashSet<Transform>();
+                foreach (var bone in _weightedBones) AddAncestors(bone, drivenBones);
 
-            private void VisitComponent(Component component)
-            {
-                if (component == null) return;
-                if (IsInScope(component.transform)) AddComponent(component);
-                else if (component.gameObject.scene.IsValid()) _result.ExternalReferenceCount++;
-            }
-
-            private void AddObject(GameObject go)
-            {
-                if (go == null) return;
-                var transform = go.transform;
-                if (!IsInScope(transform)) return;
-                if (!_result.Objects.Add(go)) return;
-
-                if (_options.Policy == MmComponentPolicy.KeepAll)
+                for (int iteration = 0; iteration < ConstraintIterationLimit; iteration++)
                 {
-                    foreach (var component in go.GetComponents<Component>()) AddComponent(component);
+                    var discovered = new HashSet<Transform>();
+
+                    foreach (var info in constraints)
+                    {
+                        if (info.Constraint == null || info.Target == null) continue;
+                        if (!drivenBones.Contains(info.Target) && !info.TargetDescendants.Overlaps(drivenBones)) continue;
+
+                        KeepComponent(info.Constraint);
+                        KeepReference(info.Target);
+
+                        foreach (var source in info.SourceAncestors)
+                        {
+                            foreach (var transform in source)
+                            {
+                                KeepObject(transform.gameObject);
+                                discovered.Add(transform);
+                            }
+                        }
+                        _result.ExternalReferenceCount += info.ExternalSourceCount;
+                        info.ExternalSourceCount = 0;
+                    }
+
+                    discovered.ExceptWith(drivenBones);
+                    if (discovered.Count == 0) return;
+                    drivenBones.UnionWith(discovered);
                 }
 
-                if (transform.parent != null) AddObject(transform.parent.gameObject);
+                Debug.LogWarning(
+                    "[Mesh Modularizer] Constraint の依存解決が上限に達しました。参照が循環している可能性があります。");
             }
 
-            private void AddComponent(Component component)
+            /// <summary>
+            /// PhysBone の揺れ単位である「子が 1 つだけ続く連鎖」を末端まで辿る。
+            /// 途中で分岐したらそこで打ち切る (Module Creator と同じ挙動)。
+            /// </summary>
+            private static void AddSingleChain(Transform transform, HashSet<Transform> result)
+            {
+                while (transform != null && result.Add(transform) && transform.childCount == 1)
+                {
+                    transform = transform.GetChild(0);
+                }
+            }
+
+            private void AddAncestors(Transform transform, HashSet<Transform> result)
+            {
+                for (var current = transform; current != null; current = current.parent)
+                {
+                    result.Add(current);
+                    if (current == _scopeRoot) return;
+                }
+            }
+
+            /// <summary>複製範囲の中なら残し、外なら「外れる参照」として数える。</summary>
+            private void KeepReference(Transform transform)
+            {
+                if (transform == null) return;
+                if (IsInScope(transform)) KeepObject(transform.gameObject);
+                else if (transform.gameObject.scene.IsValid()) _result.ExternalReferenceCount++;
+            }
+
+            private void KeepObject(GameObject go)
+            {
+                if (go == null || !IsInScope(go.transform)) return;
+                _result.Objects.Add(go);
+            }
+
+            private void KeepComponent(Component component)
             {
                 if (component == null || component is Transform) return;
                 if (!IsInScope(component.transform)) return;
-                if (_dropped.Contains(component)) return;
-                if (!_result.Components.Add(component)) return;
-
-                AddObject(component.gameObject);
-                _pending.Enqueue(component);
+                _result.Components.Add(component);
+                _result.Objects.Add(component.gameObject);
             }
 
             private bool IsInScope(Transform transform)
             {
                 return transform != null && transform.IsChildOf(_scopeRoot);
+            }
+
+            /// <summary>Constraint 1 件分の判定に必要な情報を事前計算したもの。</summary>
+            private sealed class ConstraintInfo
+            {
+                public readonly Component Constraint;
+                public readonly Transform Target;
+                public readonly HashSet<Transform> TargetDescendants = new HashSet<Transform>();
+                public readonly List<List<Transform>> SourceAncestors = new List<List<Transform>>();
+                public int ExternalSourceCount;
+
+                public ConstraintInfo(Transform scopeRoot, Component constraint)
+                {
+                    Constraint = constraint;
+                    Target = ComponentReflection.GetConstraintTarget(constraint);
+
+                    if (Target != null)
+                    {
+                        foreach (var child in Target.GetComponentsInChildren<Transform>(true))
+                        {
+                            TargetDescendants.Add(child);
+                        }
+                    }
+
+                    foreach (var source in ComponentReflection.GetConstraintSources(constraint))
+                    {
+                        var chain = AncestorChain(scopeRoot, source);
+                        if (chain == null) ExternalSourceCount++;
+                        else SourceAncestors.Add(chain);
+                    }
+                }
+
+                /// <summary>source から複製範囲のルートまでの経路。範囲外なら null。</summary>
+                private static List<Transform> AncestorChain(Transform scopeRoot, Transform source)
+                {
+                    var chain = new List<Transform>();
+                    for (var current = source; current != null; current = current.parent)
+                    {
+                        chain.Add(current);
+                        if (current == scopeRoot) return chain;
+                    }
+                    return null;
+                }
             }
         }
     }

@@ -12,11 +12,12 @@ namespace Dennokoworks.MeshModularizer
         public string PartName;
         public string OutputFolder;
 
-        // コンポーネントの維持方針 (スマート維持)
-        public MmComponentPolicy ComponentPolicy = MmComponentPolicy.KeepAll;
-        public bool RemoveOtherRenderers = true;   // 切り出し対象以外の Renderer / MeshFilter を除去
-        public bool KeepPhysBones = true;          // 不要な PhysBone は自動除去される
-        public bool KeepConstraints = true;        // Constraint を維持するか
+        // コンポーネントの維持方針。
+        // 切り出し対象の Renderer / ボーンから辿れるものだけを残すホワイトリスト方式で、
+        // ここで許可した種別のみが追加の維持候補になる。
+        public bool KeepPhysBones = true;          // メッシュに効く PhysBone を維持するか
+        public bool KeepPhysBoneColliders = true;  // 維持した PhysBone が参照する Collider を維持するか
+        public bool KeepConstraints = true;        // 維持したボーンを駆動する Constraint を維持するか
 
         // メッシュ側の設定
         public bool KeepBlendShapes = true;
@@ -50,6 +51,10 @@ namespace Dennokoworks.MeshModularizer
     /// 切り出し元メッシュを持つ Prefab を複製し、切り出したメッシュを差し込んだ上で
     /// 不要になったオブジェクト / コンポーネントを削り落として Prefab として保存する。
     /// 元のオブジェクトやメッシュアセットには一切変更を加えない。
+    ///
+    /// 残す対象は Module Creator と同じホワイトリスト方式で決まる。
+    /// 切り出した Renderer とそのボーン、そこから辿れる PhysBone / PhysBoneCollider / Constraint
+    /// だけが残り、VRCAvatarDescriptor や Animator などのアバター全体向けコンポーネントは残らない。
     /// </summary>
     public static class MeshModularizerService
     {
@@ -107,17 +112,16 @@ namespace Dennokoworks.MeshModularizer
                 // 5. 残すオブジェクト / コンポーネントの決定
                 var keepOptions = new KeepSetOptions
                 {
-                    Policy = request.ComponentPolicy,
                     KeepPhysBones = request.KeepPhysBones,
-                    KeepConstraints = request.KeepConstraints,
-                    RemoveOtherRenderers = request.RemoveOtherRenderers
+                    KeepPhysBoneColliders = request.KeepPhysBoneColliders,
+                    KeepConstraints = request.KeepConstraints
                 };
 
                 var keep = KeepSetSolver.Solve(
                     copy.transform,
                     targetRenderer,
                     targetFilter,
-                    MapTransforms(required, map),
+                    ResolveRendererBones(targetRenderer),
                     ResolveWeightedBones(split, targetRenderer, map),
                     keepOptions);
 
@@ -223,7 +227,27 @@ namespace Dennokoworks.MeshModularizer
         }
 
         /// <summary>
-        /// PhysBone のパージ判定に使う「実際にウェイトが載っているボーン」を複製側で求める。
+        /// 切り出し後の Renderer が実際に参照しているボーン (bones + rootBone)。
+        /// 参照が外れると SkinnedMeshRenderer が壊れるため、ウェイトの有無によらず全て残す。
+        /// </summary>
+        private static List<Transform> ResolveRendererBones(Renderer target)
+        {
+            var result = new List<Transform> { target.transform };
+            if (!(target is SkinnedMeshRenderer skinned)) return result;
+
+            if (skinned.bones != null)
+            {
+                foreach (var bone in skinned.bones)
+                {
+                    if (bone != null) result.Add(bone);
+                }
+            }
+            if (skinned.rootBone != null) result.Add(skinned.rootBone);
+            return result;
+        }
+
+        /// <summary>
+        /// PhysBone / Constraint の維持判定に使う「実際にウェイトが載っているボーン」を複製側で求める。
         /// </summary>
         private static List<Transform> ResolveWeightedBones(
             MeshSplitResult split, Renderer target, Dictionary<Transform, Transform> map)
@@ -240,18 +264,6 @@ namespace Dennokoworks.MeshModularizer
 
             // スキニングされていない場合は Renderer 自身の位置をウェイト扱いにする。
             if (result.Count == 0) result.Add(target.transform);
-            return result;
-        }
-
-        private static List<Transform> MapTransforms(
-            IEnumerable<Transform> originals, Dictionary<Transform, Transform> map)
-        {
-            var result = new List<Transform>();
-            foreach (var original in originals)
-            {
-                var mapped = MapTransform(original, map);
-                if (mapped != null) result.Add(mapped);
-            }
             return result;
         }
 

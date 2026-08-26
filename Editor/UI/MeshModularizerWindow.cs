@@ -292,13 +292,12 @@ namespace Dennokoworks.MeshModularizer
                 TriangleIndices = triangles,
                 PartName = state.PartName,
                 OutputFolder = state.OutputFolder,
-                ComponentPolicy = state.ComponentPolicy,
-                RemoveOtherRenderers = state.RemoveOtherRenderers,
                 KeepConstraints = state.KeepConstraints,
                 RecalculateBounds = state.RecalculateBounds,
                 TrimUnusedBones = state.TrimUnusedBones,
                 KeepBlendShapes = state.KeepBlendShapes,
                 KeepPhysBones = state.KeepPhysBones,
+                KeepPhysBoneColliders = state.KeepPhysBoneColliders,
                 AutoInstantiate = state.AutoInstantiate
             };
 
@@ -345,13 +344,12 @@ namespace Dennokoworks.MeshModularizer
                     TriangleIndices = triangles,
                     PartName = name,
                     OutputFolder = state.OutputFolder,
-                    ComponentPolicy = state.ComponentPolicy,
-                    RemoveOtherRenderers = state.RemoveOtherRenderers,
                     KeepConstraints = state.KeepConstraints,
                     RecalculateBounds = state.RecalculateBounds,
                     TrimUnusedBones = state.TrimUnusedBones,
                     KeepBlendShapes = state.KeepBlendShapes,
                     KeepPhysBones = state.KeepPhysBones,
+                    KeepPhysBoneColliders = state.KeepPhysBoneColliders,
                     AutoInstantiate = state.AutoInstantiate
                 };
 

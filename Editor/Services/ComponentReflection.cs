@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace Dennokoworks.MeshModularizer
     public static class ComponentReflection
     {
         private const string VrcConstraintBaseTypeName = "VRC.Dynamics.VRCConstraintBase";
+        private const string VrcConstraintSourceField = "SourceTransform";
         private static readonly string[] ConstraintTargetPaths = { "TargetTransform", "targetTransform" };
 
         public static Transform ReadTransform(Component component, string propertyPath)
@@ -19,11 +21,6 @@ namespace Dennokoworks.MeshModularizer
             if (component == null) return null;
             var property = new SerializedObject(component).FindProperty(propertyPath);
             return property?.objectReferenceValue as Transform;
-        }
-
-        public static bool IsRendererLike(Component component)
-        {
-            return component is Renderer || component is MeshFilter;
         }
 
         /// <summary>
@@ -57,23 +54,48 @@ namespace Dennokoworks.MeshModularizer
         }
 
         /// <summary>
-        /// コンポーネントが保持する全てのオブジェクト参照を列挙する。
-        /// 非表示フィールドも対象にするため NextVisible ではなく Next を使う。
+        /// Constraint の source (駆動元) となる Transform を列挙する。
+        /// Unity Constraint は型付き API から、VRChat Constraint は Sources 配列を
+        /// SerializedObject 経由で読み取る。
         /// </summary>
-        public static IEnumerable<UnityEngine.Object> EnumerateObjectReferences(Component component)
+        public static IEnumerable<Transform> GetConstraintSources(Component constraint)
         {
-            if (component == null) yield break;
+            if (constraint == null) yield break;
 
-            var iterator = new SerializedObject(component).GetIterator();
+            if (constraint is IConstraint typed)
+            {
+                for (int i = 0; i < typed.sourceCount; i++)
+                {
+                    var source = typed.GetSource(i).sourceTransform;
+                    if (source != null) yield return source;
+                }
+                yield break;
+            }
+
+            var target = GetConstraintTarget(constraint);
+            var fallback = new List<Transform>();
+            bool found = false;
+
+            var iterator = new SerializedObject(constraint).GetIterator();
             while (iterator.Next(true))
             {
                 if (iterator.propertyType != SerializedPropertyType.ObjectReference) continue;
-                if (iterator.propertyPath == "m_Script") continue;
-                if (iterator.propertyPath == "m_GameObject") continue;
+                if (!(iterator.objectReferenceValue is Transform value)) continue;
 
-                var value = iterator.objectReferenceValue;
-                if (value != null) yield return value;
+                if (iterator.propertyPath.EndsWith(VrcConstraintSourceField, StringComparison.Ordinal))
+                {
+                    found = true;
+                    yield return value;
+                }
+                else if (value != target)
+                {
+                    fallback.Add(value);
+                }
             }
+
+            // Sources 配列が見つからない構造だった場合のみ、Transform 参照全体を source と見なす。
+            if (found) yield break;
+            foreach (var value in fallback) yield return value;
         }
     }
 }

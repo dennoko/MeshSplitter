@@ -23,6 +23,7 @@ namespace Dennokoworks.MeshModularizer
 
         private static readonly string[] RootPaths = { "rootTransform", "m_Root" };
         private static readonly string[] IgnorePaths = { "ignoreTransforms", "m_Exclusions" };
+        private static readonly string[] ColliderListPaths = { "colliders", "m_Colliders" };
 
         public static bool IsAvailable => MmTypeCache.FindAny(PhysBoneTypeNames) != null;
 
@@ -60,18 +61,6 @@ namespace Dennokoworks.MeshModularizer
             return result;
         }
 
-        public static List<Component> FindColliders(Transform root, bool includeInactive = true)
-        {
-            var result = new List<Component>();
-            if (root == null) return result;
-
-            foreach (var component in root.GetComponentsInChildren<Component>(includeInactive))
-            {
-                if (IsCollider(component)) result.Add(component);
-            }
-            return result;
-        }
-
         public static Transform GetRoot(Component physBone)
         {
             if (physBone == null) return null;
@@ -81,6 +70,33 @@ namespace Dennokoworks.MeshModularizer
                 if (t != null) return t;
             }
             return physBone.transform;
+        }
+
+        /// <summary>
+        /// PhysBone が参照している Collider を列挙する。
+        /// 維持した PhysBone の当たり判定を再現するために必要。
+        /// </summary>
+        public static List<Component> GetColliders(Component physBone)
+        {
+            var result = new List<Component>();
+            if (physBone == null) return result;
+
+            var so = new UnityEditor.SerializedObject(physBone);
+            foreach (var path in ColliderListPaths)
+            {
+                var array = so.FindProperty(path);
+                if (array == null || !array.isArray) continue;
+
+                for (int i = 0; i < array.arraySize; i++)
+                {
+                    if (array.GetArrayElementAtIndex(i).objectReferenceValue is Component collider)
+                    {
+                        result.Add(collider);
+                    }
+                }
+                break;
+            }
+            return result;
         }
 
         public static HashSet<Transform> GetAffectedTransforms(Component physBone)

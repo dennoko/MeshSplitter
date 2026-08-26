@@ -21,9 +21,9 @@ namespace Dennokoworks.MeshModularizer
         public string OutputFolder = MmPaths.DefaultOutputFolder;
 
         // コンポーネント・メッシュの内部設定 (スマート維持)
-        public MmComponentPolicy ComponentPolicy = MmComponentPolicy.KeepAll;
-        public bool RemoveOtherRenderers = true;       // 切り出し対象以外の Renderer を除去
-        public bool KeepPhysBones = true;              // 不要な PhysBone は自動除去される
+        // 切り出し対象から辿れるものだけを残すため、これらは「辿る種別」の許可設定にあたる。
+        public bool KeepPhysBones = true;              // メッシュに効かない PhysBone は常に除去される
+        public bool KeepPhysBoneColliders = true;
         public bool KeepConstraints = true;
         public bool KeepBlendShapes = true;
         public bool TrimUnusedBones = true;            // デフォルト: ウェイトの無い親以外のボーンを除去
@@ -51,9 +51,8 @@ namespace Dennokoworks.MeshModularizer
                 Selection = new HashSet<int>(Selection),
                 PartName = PartName,
                 OutputFolder = OutputFolder,
-                ComponentPolicy = ComponentPolicy,
-                RemoveOtherRenderers = RemoveOtherRenderers,
                 KeepPhysBones = KeepPhysBones,
+                KeepPhysBoneColliders = KeepPhysBoneColliders,
                 KeepConstraints = KeepConstraints,
                 KeepBlendShapes = KeepBlendShapes,
                 TrimUnusedBones = TrimUnusedBones,
