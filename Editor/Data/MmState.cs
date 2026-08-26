@@ -20,20 +20,14 @@ namespace Dennokoworks.MeshModularizer
         public string PartName = "MeshPart";
         public string OutputFolder = MmPaths.DefaultOutputFolder;
 
-        // コンポーネントの維持方針
+        // コンポーネント・メッシュの内部設定 (スマート維持)
         public MmComponentPolicy ComponentPolicy = MmComponentPolicy.KeepAll;
         public bool RemoveOtherRenderers = true;       // 切り出し対象以外の Renderer を除去
-        public bool KeepPhysBones = true;              // 不要な PhysBone は方針によらず常に除去される
+        public bool KeepPhysBones = true;              // 不要な PhysBone は自動除去される
         public bool KeepConstraints = true;
-
-        // メッシュ設定
         public bool KeepBlendShapes = true;
-        public bool TrimUnusedBones = false;           // デフォルト: ウェイトの無いボーンも残す
-        public bool RecalculateBounds = false;         // デフォルト: 元のBoundsをそのまま維持
-
-        // 出力設定
-        public bool AddBoneProxy = false;
-        public HumanBodyBones BoneProxyTarget = HumanBodyBones.Head;
+        public bool TrimUnusedBones = true;            // デフォルト: ウェイトの無い親以外のボーンを除去
+        public bool RecalculateBounds = true;
         public bool AutoInstantiate = true;
 
         // シーン連携
@@ -64,8 +58,6 @@ namespace Dennokoworks.MeshModularizer
                 KeepBlendShapes = KeepBlendShapes,
                 TrimUnusedBones = TrimUnusedBones,
                 RecalculateBounds = RecalculateBounds,
-                AddBoneProxy = AddBoneProxy,
-                BoneProxyTarget = BoneProxyTarget,
                 AutoInstantiate = AutoInstantiate,
                 SceneSelectionEnabled = SceneSelectionEnabled,
                 SceneOverlayEnabled = SceneOverlayEnabled,

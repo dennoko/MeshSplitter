@@ -12,20 +12,18 @@ namespace Dennokoworks.MeshModularizer
         public string PartName;
         public string OutputFolder;
 
-        // コンポーネントの維持方針
+        // コンポーネントの維持方針 (スマート維持)
         public MmComponentPolicy ComponentPolicy = MmComponentPolicy.KeepAll;
         public bool RemoveOtherRenderers = true;   // 切り出し対象以外の Renderer / MeshFilter を除去
-        public bool KeepPhysBones = true;          // false にすると PhysBone を全て除去
+        public bool KeepPhysBones = true;          // 不要な PhysBone は自動除去される
         public bool KeepConstraints = true;        // Constraint を維持するか
 
         // メッシュ側の設定
         public bool KeepBlendShapes = true;
-        public bool TrimUnusedBones = false;       // ウェイトの無いボーンを bones 配列と階層から除去
-        public bool RecalculateBounds = false;     // false なら元の localBounds をそのまま維持
+        public bool TrimUnusedBones = true;       // ウェイトの無い親以外のボーンを階層から除去
+        public bool RecalculateBounds = true;     // localBounds を再計算
 
         // 出力
-        public bool AddBoneProxy = false;
-        public HumanBodyBones BoneProxyTarget = HumanBodyBones.Head;
         public bool AutoInstantiate = true;
     }
 
@@ -133,13 +131,7 @@ namespace Dennokoworks.MeshModularizer
                     notes.Add($"複製範囲の外を指す参照が {keep.ExternalReferenceCount} 件あります (Prefab では外れます)。");
                 }
 
-                // 7. MA Bone Proxy の付与 (オプショナル)
-                if (request.AddBoneProxy && ModularAvatarBridge.IsAvailable)
-                {
-                    ModularAvatarBridge.AddBoneProxy(copy, request.BoneProxyTarget, recordUndo: false);
-                }
-
-                // 8. メッシュアセットの保存
+                // 7. メッシュアセットの保存
                 string meshSubFolder = MmPaths.SubFolder(outputFolder, MmPaths.MeshesSubFolder);
                 string meshPath = MmPaths.UniqueAssetPath(meshSubFolder, partName + "_Mesh", ".asset");
                 AssetDatabase.CreateAsset(split.Mesh, meshPath);

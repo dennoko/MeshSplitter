@@ -26,8 +26,6 @@ namespace Dennokoworks.MeshModularizer
         private DropdownField _submeshDropdown;
         private Button _pickUvBtn;
         private Button _pickPolyBtn;
-        private Button _selAddBtn;
-        private Button _selRemoveBtn;
         private Button _sceneSelectToggleBtn;
         private Toggle _sceneXrayToggle;
         private Label _sourceInfoLabel;
@@ -37,20 +35,6 @@ namespace Dennokoworks.MeshModularizer
         private Button _extractBtn;
         private Button _extractSubmeshBtn;
         private Label _extractStatusLabel;
-
-        private Button _policyKeepAllBtn;
-        private Button _policyDepsOnlyBtn;
-        private Label _policyNoteLabel;
-        private Label _scopeInfoLabel;
-        private Toggle _keepPhysBonesToggle;
-        private Toggle _keepConstraintsToggle;
-        private Toggle _removeOtherRenderersToggle;
-        private Toggle _trimUnusedBonesToggle;
-        private Toggle _keepBlendShapesToggle;
-        private Toggle _recalculateBoundsToggle;
-        private Toggle _addBoneProxyToggle;
-        private EnumField _boneProxyTargetField;
-        private Toggle _autoInstantiateToggle;
 
         private int _submeshChoiceCount = -1;
 
@@ -123,19 +107,12 @@ namespace Dennokoworks.MeshModularizer
             _submeshDropdown.RegisterValueChangedCallback(OnSubmeshDropdownChanged);
 
             root.Q<Button>("source-from-selection").clicked += () => Dispatch(new CmdPickSourceFromSelection());
-            root.Q<Button>("analyze-button").clicked += () => Dispatch(new CmdAnalyzeSource());
 
             _pickUvBtn = root.Q<Button>("pick-uv");
             _pickUvBtn.clicked += () => Dispatch(new SetPickMode(MmPickMode.UvIsland));
 
             _pickPolyBtn = root.Q<Button>("pick-poly");
             _pickPolyBtn.clicked += () => Dispatch(new SetPickMode(MmPickMode.ConnectedPolygon));
-
-            _selAddBtn = root.Q<Button>("sel-add");
-            _selAddBtn.clicked += () => Dispatch(new SetSelectionMode(MmSelectionMode.Add));
-
-            _selRemoveBtn = root.Q<Button>("sel-remove");
-            _selRemoveBtn.clicked += () => Dispatch(new SetSelectionMode(MmSelectionMode.Remove));
 
             root.Q<Button>("select-all").clicked += () => Dispatch(new SelectAllGroups());
             root.Q<Button>("select-none").clicked += () => Dispatch(new ClearSelection());
@@ -160,29 +137,6 @@ namespace Dennokoworks.MeshModularizer
 
             _outputFolderField = root.Q<TextField>("output-folder");
             _outputFolderField.RegisterValueChangedCallback(evt => Dispatch(new SetOutputFolder(evt.newValue)));
-
-            _policyKeepAllBtn = root.Q<Button>("policy-keep-all");
-            _policyKeepAllBtn.clicked += () => Dispatch(new SetComponentPolicy(MmComponentPolicy.KeepAll));
-
-            _policyDepsOnlyBtn = root.Q<Button>("policy-deps-only");
-            _policyDepsOnlyBtn.clicked += () => Dispatch(new SetComponentPolicy(MmComponentPolicy.MeshDependenciesOnly));
-
-            _policyNoteLabel = root.Q<Label>("policy-note");
-            _scopeInfoLabel = root.Q<Label>("scope-info");
-
-            _keepPhysBonesToggle = BindToggle(root, "opt-keep-physbones", v => new SetKeepPhysBones(v));
-            _keepConstraintsToggle = BindToggle(root, "opt-keep-constraints", v => new SetKeepConstraints(v));
-            _removeOtherRenderersToggle = BindToggle(root, "opt-remove-other-renderers", v => new SetRemoveOtherRenderers(v));
-            _trimUnusedBonesToggle = BindToggle(root, "opt-trim-unused-bones", v => new SetTrimUnusedBones(v));
-            _keepBlendShapesToggle = BindToggle(root, "opt-keep-blendshapes", v => new SetKeepBlendShapes(v));
-            _recalculateBoundsToggle = BindToggle(root, "opt-recalculate-bounds", v => new SetRecalculateBounds(v));
-            _addBoneProxyToggle = BindToggle(root, "opt-add-bone-proxy", v => new SetAddBoneProxy(v));
-            _autoInstantiateToggle = BindToggle(root, "opt-auto-instantiate", v => new SetAutoInstantiate(v));
-
-            _boneProxyTargetField = root.Q<EnumField>("opt-bone-proxy-target");
-            _boneProxyTargetField.Init(HumanBodyBones.Head);
-            _boneProxyTargetField.RegisterValueChangedCallback(
-                evt => Dispatch(new SetBoneProxyTarget((HumanBodyBones)evt.newValue)));
 
             _extractBtn = root.Q<Button>("extract-button");
             _extractBtn.clicked += () => Dispatch(new CmdExtractPart());
@@ -279,46 +233,6 @@ namespace Dennokoworks.MeshModularizer
                     next.OutputFolder = a.Value;
                     break;
 
-                case SetComponentPolicy a:
-                    next.ComponentPolicy = a.Value;
-                    break;
-
-                case SetRemoveOtherRenderers a:
-                    next.RemoveOtherRenderers = a.Value;
-                    break;
-
-                case SetRecalculateBounds a:
-                    next.RecalculateBounds = a.Value;
-                    break;
-
-                case SetTrimUnusedBones a:
-                    next.TrimUnusedBones = a.Value;
-                    break;
-
-                case SetKeepBlendShapes a:
-                    next.KeepBlendShapes = a.Value;
-                    break;
-
-                case SetKeepPhysBones a:
-                    next.KeepPhysBones = a.Value;
-                    break;
-
-                case SetKeepConstraints a:
-                    next.KeepConstraints = a.Value;
-                    break;
-
-                case SetAddBoneProxy a:
-                    next.AddBoneProxy = a.Value;
-                    break;
-
-                case SetBoneProxyTarget a:
-                    next.BoneProxyTarget = a.Value;
-                    break;
-
-                case SetAutoInstantiate a:
-                    next.AutoInstantiate = a.Value;
-                    break;
-
                 case ToggleSceneSelection _:
                     next.SceneSelectionEnabled = !next.SceneSelectionEnabled;
                     break;
@@ -385,8 +299,6 @@ namespace Dennokoworks.MeshModularizer
                 TrimUnusedBones = state.TrimUnusedBones,
                 KeepBlendShapes = state.KeepBlendShapes,
                 KeepPhysBones = state.KeepPhysBones,
-                AddBoneProxy = state.AddBoneProxy,
-                BoneProxyTarget = state.BoneProxyTarget,
                 AutoInstantiate = state.AutoInstantiate
             };
 
@@ -440,8 +352,6 @@ namespace Dennokoworks.MeshModularizer
                     TrimUnusedBones = state.TrimUnusedBones,
                     KeepBlendShapes = state.KeepBlendShapes,
                     KeepPhysBones = state.KeepPhysBones,
-                    AddBoneProxy = state.AddBoneProxy,
-                    BoneProxyTarget = state.BoneProxyTarget,
                     AutoInstantiate = state.AutoInstantiate
                 };
 
@@ -466,8 +376,6 @@ namespace Dennokoworks.MeshModularizer
 
             SetButtonActive(_pickUvBtn, _state.PickMode == MmPickMode.UvIsland);
             SetButtonActive(_pickPolyBtn, _state.PickMode == MmPickMode.ConnectedPolygon);
-            SetButtonActive(_selAddBtn, _state.SelectionMode == MmSelectionMode.Add);
-            SetButtonActive(_selRemoveBtn, _state.SelectionMode == MmSelectionMode.Remove);
 
             _sceneSelectToggleBtn.text = _state.SceneSelectionEnabled ? "シーンでクリック選択: ON" : "シーンでクリック選択: OFF";
             SetButtonActive(_sceneSelectToggleBtn, _state.SceneSelectionEnabled);
@@ -483,26 +391,6 @@ namespace Dennokoworks.MeshModularizer
             else if (_state.Source != null && _state.Source.GetComponent<MeshFilter>() is MeshFilter mf) mesh = mf.sharedMesh;
             _extractSubmeshBtn.SetEnabled(mesh != null && mesh.subMeshCount > 1);
 
-            SetButtonActive(_policyKeepAllBtn, _state.ComponentPolicy == MmComponentPolicy.KeepAll);
-            SetButtonActive(_policyDepsOnlyBtn, _state.ComponentPolicy == MmComponentPolicy.MeshDependenciesOnly);
-            _policyNoteLabel.text = DescribePolicy();
-            _scopeInfoLabel.text = ExtractionScope.Describe(_state.Source);
-
-            _keepPhysBonesToggle.SetValueWithoutNotify(_state.KeepPhysBones);
-            _keepConstraintsToggle.SetValueWithoutNotify(_state.KeepConstraints);
-            _removeOtherRenderersToggle.SetValueWithoutNotify(_state.RemoveOtherRenderers);
-            _trimUnusedBonesToggle.SetValueWithoutNotify(_state.TrimUnusedBones);
-            _keepBlendShapesToggle.SetValueWithoutNotify(_state.KeepBlendShapes);
-            _recalculateBoundsToggle.SetValueWithoutNotify(_state.RecalculateBounds);
-            _addBoneProxyToggle.SetValueWithoutNotify(_state.AddBoneProxy);
-            _autoInstantiateToggle.SetValueWithoutNotify(_state.AutoInstantiate);
-            _boneProxyTargetField.SetValueWithoutNotify(_state.BoneProxyTarget);
-
-            // メッシュ依存のみの方針では対象以外の Renderer は常に除去される。
-            _removeOtherRenderersToggle.SetEnabled(_state.ComponentPolicy == MmComponentPolicy.KeepAll);
-            _addBoneProxyToggle.SetEnabled(ModularAvatarBridge.IsAvailable);
-            _boneProxyTargetField.SetEnabled(_state.AddBoneProxy && ModularAvatarBridge.IsAvailable);
-
             _extractStatusLabel.text = _state.LastError ?? _state.LastMessage ?? "";
             _extractStatusLabel.style.color = _state.LastError != null ? new StyleColor(new Color(1f, 0.4f, 0.4f)) : new StyleColor(new Color(0.7f, 0.7f, 0.7f));
 
@@ -512,6 +400,7 @@ namespace Dennokoworks.MeshModularizer
 
         private void OnSubmeshDropdownChanged(ChangeEvent<string> evt)
         {
+            if (_submeshDropdown.choices == null) return;
             int index = _submeshDropdown.choices.IndexOf(evt.newValue);
             Dispatch(new SetSourceSubmesh(index <= 0 ? -1 : index - 1));
         }
@@ -523,7 +412,7 @@ namespace Dennokoworks.MeshModularizer
             else if (_state.Source != null && _state.Source.GetComponent<MeshFilter>() is MeshFilter mf) mesh = mf.sharedMesh;
 
             int count = mesh != null ? mesh.subMeshCount : 0;
-            if (count != _submeshChoiceCount)
+            if (count != _submeshChoiceCount || _submeshDropdown.choices == null || _submeshDropdown.choices.Count == 0)
             {
                 var choices = new List<string> { "すべて" };
                 var materials = _state.Source != null ? _state.Source.sharedMaterials : Array.Empty<Material>();
@@ -536,9 +425,13 @@ namespace Dennokoworks.MeshModularizer
                 _submeshChoiceCount = count;
             }
 
-            int selected = _state.SourceSubmesh < 0 ? 0 : _state.SourceSubmesh + 1;
-            if (selected >= _submeshDropdown.choices.Count) selected = 0;
-            _submeshDropdown.SetValueWithoutNotify(_submeshDropdown.choices[selected]);
+            var currentChoices = _submeshDropdown.choices;
+            if (currentChoices != null && currentChoices.Count > 0)
+            {
+                int selected = _state.SourceSubmesh < 0 ? 0 : _state.SourceSubmesh + 1;
+                if (selected < 0 || selected >= currentChoices.Count) selected = 0;
+                _submeshDropdown.SetValueWithoutNotify(currentChoices[selected]);
+            }
             _submeshDropdown.SetEnabled(count > 1);
         }
 
@@ -561,22 +454,6 @@ namespace Dennokoworks.MeshModularizer
             int triangles = _state.Topology.CountTriangles(_state.PickMode, _state.Selection);
             string unit = _state.PickMode == MmPickMode.UvIsland ? "アイランド" : "グループ";
             return $"{_state.Selection.Count} {unit} / {triangles} 三角形を選択中";
-        }
-
-        private Toggle BindToggle(VisualElement root, string name, Func<bool, IMmAction> factory)
-        {
-            var toggle = root.Q<Toggle>(name);
-            if (toggle != null) toggle.RegisterValueChangedCallback(evt => Dispatch(factory(evt.newValue)));
-            return toggle;
-        }
-
-        private string DescribePolicy()
-        {
-            if (_state.ComponentPolicy == MmComponentPolicy.MeshDependenciesOnly)
-            {
-                return "Renderer / PhysBone / PhysBoneCollider / Constraint だけを残します (Module Creator 相当)。";
-            }
-            return "切り出し対象以外の Renderer と不要な PhysBone 以外は、全てのコンポーネントを残します。";
         }
 
         private static string DescribeResult(ModularizeResult result)

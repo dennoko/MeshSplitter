@@ -56,66 +56,6 @@ namespace Dennokoworks.MeshModularizer
         public SetOutputFolder(string value) => Value = value;
     }
 
-    public sealed class SetComponentPolicy : IMmAction
-    {
-        public MmComponentPolicy Value { get; }
-        public SetComponentPolicy(MmComponentPolicy value) => Value = value;
-    }
-
-    public sealed class SetRemoveOtherRenderers : IMmAction
-    {
-        public bool Value { get; }
-        public SetRemoveOtherRenderers(bool value) => Value = value;
-    }
-
-    public sealed class SetRecalculateBounds : IMmAction
-    {
-        public bool Value { get; }
-        public SetRecalculateBounds(bool value) => Value = value;
-    }
-
-    public sealed class SetTrimUnusedBones : IMmAction
-    {
-        public bool Value { get; }
-        public SetTrimUnusedBones(bool value) => Value = value;
-    }
-
-    public sealed class SetKeepBlendShapes : IMmAction
-    {
-        public bool Value { get; }
-        public SetKeepBlendShapes(bool value) => Value = value;
-    }
-
-    public sealed class SetKeepPhysBones : IMmAction
-    {
-        public bool Value { get; }
-        public SetKeepPhysBones(bool value) => Value = value;
-    }
-
-    public sealed class SetKeepConstraints : IMmAction
-    {
-        public bool Value { get; }
-        public SetKeepConstraints(bool value) => Value = value;
-    }
-
-    public sealed class SetAddBoneProxy : IMmAction
-    {
-        public bool Value { get; }
-        public SetAddBoneProxy(bool value) => Value = value;
-    }
-
-    public sealed class SetBoneProxyTarget : IMmAction
-    {
-        public HumanBodyBones Value { get; }
-        public SetBoneProxyTarget(HumanBodyBones value) => Value = value;
-    }
-
-    public sealed class SetAutoInstantiate : IMmAction
-    {
-        public bool Value { get; }
-        public SetAutoInstantiate(bool value) => Value = value;
-    }
-
     public sealed class ToggleSceneSelection : IMmAction { }
     public sealed class SetSceneOverlayEnabled : IMmAction
     {
