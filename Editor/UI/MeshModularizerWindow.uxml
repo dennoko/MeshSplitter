@@ -1,0 +1,77 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:ScrollView class="dennoko-scrollview mm-grow">
+        <!-- 1. 切り出し元メッシュ -->
+        <ui:VisualElement class="dennoko-card">
+            <ui:TextElement text="切り出し元メッシュ" class="dennoko-heading-2" />
+            <ui:VisualElement class="mm-row">
+                <uie:ObjectField name="source-field" class="mm-grow" allow-scene-objects="true" />
+                <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" />
+            </ui:VisualElement>
+            <ui:DropdownField name="submesh-dropdown" label="対象サブメッシュ" />
+            <ui:Button name="analyze-button" text="メッシュを再解析" class="dennoko-button-primary" style="margin-top: 4px;" />
+            <ui:Label name="source-info" class="mm-note" />
+        </ui:VisualElement>
+
+        <!-- 2. 範囲選択 -->
+        <ui:VisualElement class="dennoko-card">
+            <ui:TextElement text="範囲選択" class="dennoko-heading-2" />
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="pick-uv" text="UVアイランド" class="mm-fill" />
+                <ui:Button name="pick-poly" text="連結ポリゴン" class="mm-fill" />
+            </ui:VisualElement>
+            <ui:VisualElement class="mm-row" style="margin-top: 4px;">
+                <ui:Button name="sel-add" text="選択 (+)" class="mm-fill" />
+                <ui:Button name="sel-remove" text="解除 (-)" class="mm-fill" />
+                <ui:Button name="select-all" text="全選択" class="mm-fill" />
+                <ui:Button name="select-none" text="クリア" class="mm-fill" />
+                <ui:Button name="select-invert" text="反転" class="mm-fill" />
+            </ui:VisualElement>
+
+            <!-- UV プレビューホスト -->
+            <ui:VisualElement name="uv-preview-host" class="mm-preview" />
+
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="scene-select-toggle" text="シーンでクリック選択: ON" class="mm-fill" />
+                <ui:Toggle name="opt-scene-xray" label="X-Ray (透過)" value="true" />
+            </ui:VisualElement>
+            <ui:Label name="selection-info" class="mm-note" />
+        </ui:VisualElement>
+
+        <!-- 3. コンポーネントの維持 -->
+        <ui:VisualElement class="dennoko-card">
+            <ui:TextElement text="コンポーネントの維持" class="dennoko-heading-2" />
+            <ui:VisualElement class="mm-row">
+                <ui:Button name="policy-keep-all" text="全て維持" class="mm-fill" />
+                <ui:Button name="policy-deps-only" text="メッシュ依存のみ" class="mm-fill" />
+            </ui:VisualElement>
+            <ui:Label name="policy-note" class="mm-note" />
+
+            <ui:Toggle name="opt-keep-physbones" label="PhysBone を維持" value="true" />
+            <ui:Toggle name="opt-keep-constraints" label="Constraint を維持" value="true" />
+            <ui:Toggle name="opt-remove-other-renderers" label="対象以外の Renderer を除去" value="true" />
+            <ui:Label name="scope-info" class="mm-note" />
+        </ui:VisualElement>
+
+        <!-- 4. メッシュ設定 -->
+        <ui:VisualElement class="dennoko-card">
+            <ui:TextElement text="メッシュ設定" class="dennoko-heading-2" />
+            <ui:Toggle name="opt-keep-blendshapes" label="BlendShape を維持" value="true" />
+            <ui:Toggle name="opt-trim-unused-bones" label="ウェイトの無いボーンを除去" />
+            <ui:Toggle name="opt-recalculate-bounds" label="Bounds を再計算" />
+        </ui:VisualElement>
+
+        <!-- 5. 出力設定 -->
+        <ui:VisualElement class="dennoko-card">
+            <ui:TextElement text="パーツ出力設定" class="dennoko-heading-2" />
+            <ui:TextField name="part-name" label="パーツ名" value="MeshPart" />
+            <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MeshModularizer_Output" />
+            <ui:Toggle name="opt-auto-instantiate" label="書き出し後にシーンへ配置" value="true" />
+            <ui:Toggle name="opt-add-bone-proxy" label="MA Bone Proxy を付与" />
+            <uie:EnumField name="opt-bone-proxy-target" label="Bone Proxy の接続先" />
+
+            <ui:Button name="extract-button" text="選択範囲をパーツPrefabとして書き出し" class="dennoko-button-primary" style="margin-top: 8px; height: 32px;" />
+            <ui:Button name="extract-submesh-button" text="全サブメッシュを個別のPrefabに一括書き出し" class="dennoko-button" style="margin-top: 4px;" />
+            <ui:Label name="extract-status" class="mm-note" />
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>

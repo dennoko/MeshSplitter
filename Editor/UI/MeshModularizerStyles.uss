@@ -1,0 +1,45 @@
+/* MeshModularizerStyles.uss */
+
+.dennoko-root .mm-grow {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.dennoko-root .mm-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.dennoko-root .unity-button.mm-fixed {
+    flex-shrink: 0;
+    width: 96px;
+}
+
+.dennoko-root .unity-button.mm-fill {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.dennoko-root .mm-note {
+    font-size: 10px;
+    color: var(--dennoko-text-tertiary);
+    white-space: normal;
+    margin: 2px 0 6px 0;
+}
+
+.dennoko-root .mm-preview {
+    height: 260px;
+    background-color: var(--dennoko-surface-0);
+    border-color: var(--dennoko-outline);
+    border-width: 1px;
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.dennoko-root .mm-marquee {
+    border-color: var(--dennoko-semantic-info);
+    border-width: 1px;
+    background-color: rgba(100, 181, 246, 0.15);
+}
+
