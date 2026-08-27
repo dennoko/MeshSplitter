@@ -15,7 +15,7 @@ namespace Dennokoworks.MeshModularizer
     public static class MmAssets
     {
         /// <summary>ツールのルート特定に使う asmdef ファイル名 (プロジェクト内で一意)。</summary>
-        private const string AsmdefFileName = "dennokoworks.MeshModularizer.Editor.asmdef";
+        private const string AsmdefFileName = "dennokoworks.MeshSplitter.Editor.asmdef";
 
         private static string _rootFolder;
         private static bool _rootResolved;

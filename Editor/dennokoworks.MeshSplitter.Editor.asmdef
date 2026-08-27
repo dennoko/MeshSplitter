@@ -1,5 +1,5 @@
 {
-    "name": "dennokoworks.MeshModularizer.Editor",
+    "name": "dennokoworks.MeshSplitter.Editor",
     "rootNamespace": "Dennokoworks.MeshModularizer",
     "references": [],
     "includePlatforms": [
