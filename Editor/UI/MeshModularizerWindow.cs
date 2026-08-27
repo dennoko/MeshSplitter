@@ -537,7 +537,22 @@ namespace Dennokoworks.MeshModularizer
             {
                 state.LastMessage = DescribeResult(res);
                 state.LastError = null;
-                EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(res.PrefabPath));
+                var prefabAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(res.PrefabPath);
+                if (prefabAsset != null)
+                {
+                    Selection.activeObject = prefabAsset;
+                    EditorGUIUtility.PingObject(prefabAsset);
+                }
+                else
+                {
+                    var folderAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(state.OutputFolder);
+                    if (folderAsset != null)
+                    {
+                        Selection.activeObject = folderAsset;
+                        EditorGUIUtility.PingObject(folderAsset);
+                    }
+                }
+                EditorUtility.FocusProjectWindow();
             }
             else
             {
@@ -604,6 +619,17 @@ namespace Dennokoworks.MeshModularizer
             finally
             {
                 EditorUtility.ClearProgressBar();
+            }
+
+            if (success > 0)
+            {
+                var folderAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(state.OutputFolder);
+                if (folderAsset != null)
+                {
+                    Selection.activeObject = folderAsset;
+                    EditorGUIUtility.PingObject(folderAsset);
+                }
+                EditorUtility.FocusProjectWindow();
             }
 
             state.LastMessage = MmLocalization.Tr("submesh_batch_success_format", success, count);

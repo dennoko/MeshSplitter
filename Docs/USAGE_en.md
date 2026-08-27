@@ -58,7 +58,7 @@ Section to choose which polygons to extract.
 ### 4. Create Prefab
 Section to export the selected mesh as new assets.
 - **Prefab Name**: Name of the generated Prefab and Mesh asset.
-- **Output Folder**: Destination folder in your project (default: `Assets/MeshSplitter_Output`).
+- **Output Folder**: Destination folder in your project (default: `Assets/MS_splitted_mesh`).
 - **Export Selection as Part Prefab**: Exports the selected polygons as a single standalone Prefab and Mesh asset.
 - **Batch Export All Submeshes as Individual Prefabs**: Exports all submeshes into separate individual Prefabs in one click.
 

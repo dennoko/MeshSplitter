@@ -58,7 +58,7 @@
             <ui:VisualElement class="dennoko-card">
                 <ui:TextElement name="header-prefab-output" text="Prefab化" class="dennoko-section-title dennoko-card-header" />
                 <ui:TextField name="part-name" label="Prefab名" value="MeshPart" />
-                <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MeshSplitter_Output" />
+                <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MS_splitted_mesh" />
 
                 <ui:Button name="extract-button" text="選択範囲をパーツPrefabとして書き出し" class="dennoko-button-primary" style="margin-top: 8px; height: 32px;" />
                 <ui:Button name="extract-submesh-button" text="全サブメッシュを個別のPrefabに一括書き出し" class="dennoko-button" style="margin-top: 4px;" />
