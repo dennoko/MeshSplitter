@@ -188,15 +188,13 @@ namespace Dennokoworks.MeshModularizer
                 return File.ReadAllText(path);
             }
 
-            // 2) AssetDatabase 探索
-            var guids = AssetDatabase.FindAssets("Localization");
-            foreach (var guid in guids)
+            // 2) AssetDatabase 探索 (本ツールのフォルダ配下に限定する。
+            //    他の dennokoworks ツールも Localization.json を同梱しており、
+            //    それを掴むと全てのラベルが翻訳キーのまま表示されてしまう)
+            string assetPath = MmAssets.FindAssetPath("Localization.json");
+            if (!string.IsNullOrEmpty(assetPath) && File.Exists(assetPath))
             {
-                string p = AssetDatabase.GUIDToAssetPath(guid);
-                if (p.EndsWith("Localization.json", StringComparison.OrdinalIgnoreCase))
-                {
-                    return File.ReadAllText(p);
-                }
+                return File.ReadAllText(assetPath);
             }
 
             return null;

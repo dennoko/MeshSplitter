@@ -99,16 +99,9 @@ namespace Dennokoworks.MeshModularizer
 
         private static T FindAsset<T>(string fileName) where T : UnityEngine.Object
         {
-            var guids = AssetDatabase.FindAssets(System.IO.Path.GetFileNameWithoutExtension(fileName));
-            foreach (var guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (path.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return AssetDatabase.LoadAssetAtPath<T>(path);
-                }
-            }
-            return null;
+            // 他の dennokoworks ツールが同名アセット (DennokoTheme.uss 等) を同梱するため、
+            // プロジェクト全体ではなく本ツールのフォルダ配下から解決する。
+            return MmAssets.Find<T>(fileName);
         }
 
         private void BindUI()
