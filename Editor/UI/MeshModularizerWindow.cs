@@ -38,8 +38,13 @@ namespace Dennokoworks.MeshModularizer
         private Label _versionLabel;
         private Button _versionReloadBtn;
         private Button _langButton;
-        private DennokoVersionChecker.Result _versionResult =
-            new DennokoVersionChecker.Result { State = DennokoVersionChecker.State.Checking, LocalVersion = "0.1.0" };
+        // ローカル版はハードコードせず version.json から読む
+        // (取得できなかった場合は MeshModularizerVersion 側でフォールバックされる)
+        private DennokoVersionChecker.Result _versionResult = new DennokoVersionChecker.Result
+        {
+            State = DennokoVersionChecker.State.Checking,
+            LocalVersion = MeshModularizerVersion.Current
+        };
 
         private int _submeshChoiceCount = -1;
 
