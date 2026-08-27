@@ -141,6 +141,15 @@ namespace Dennokoworks.MeshModularizer
                 AssetDatabase.CreateAsset(split.Mesh, meshPath);
                 meshOwned = false;
 
+                // 8. Prefab化するパーツおよび階層・Renderer のアクティブ化
+                // 元メッシュや親オブジェクトが非アクティブであっても、出力されるパーツPrefabはアクティブ状態で保存する。
+                copy.SetActive(true);
+                targetRenderer.enabled = true;
+                for (Transform curr = targetRenderer.transform; curr != null && curr.IsChildOf(copy.transform); curr = curr.parent)
+                {
+                    curr.gameObject.SetActive(true);
+                }
+
                 // 9. Prefab の保存
                 string prefabPath = MmPaths.UniqueAssetPath(outputFolder, partName, ".prefab");
                 var prefab = PrefabUtility.SaveAsPrefabAsset(copy, prefabPath);
@@ -162,6 +171,7 @@ namespace Dennokoworks.MeshModularizer
                         : PrefabUtility.InstantiatePrefab(prefab)) as GameObject;
                     if (instance != null)
                     {
+                        instance.SetActive(true);
                         Undo.RegisterCreatedObjectUndo(instance, "Instantiate Modularized Part");
                         Selection.activeGameObject = instance;
                     }

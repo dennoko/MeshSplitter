@@ -45,6 +45,9 @@ namespace Dennokoworks.MeshModularizer
             public string source_info_analyzing;
             public string source_info_format;
             public string source_info_no_uv;
+            public string warn_source_parent_inactive;
+            public string warn_source_self_inactive;
+            public string warn_source_renderer_disabled;
             public string error_no_mesh;
 
             public string section_selection;

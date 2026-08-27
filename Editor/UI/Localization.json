@@ -7,7 +7,6 @@
     "ver_reload_tooltip": "アップデートを再確認",
     "lang_button_text": "EN",
     "lang_button_tooltip": "英語に切り替え (Switch to English)",
-
     "section_target_mesh": "対象メッシュ",
     "btn_pick_source": "選択から取得",
     "tooltip_pick_source": "選択中のメッシュをセットします",
@@ -19,8 +18,10 @@
     "source_info_analyzing": "解析中...",
     "source_info_format": "三角形 {0} / UVアイランド {1} / つながったポリゴン {2}",
     "source_info_no_uv": " (UV{0} なし)",
+    "warn_source_parent_inactive": "⚠️ 対象メッシュの親オブジェクトが非アクティブなため、シーン上に描画されていません",
+    "warn_source_self_inactive": "⚠️ 対象メッシュのオブジェクトが非アクティブです",
+    "warn_source_renderer_disabled": "⚠️ 対象メッシュのRendererが無効化されています",
     "error_no_mesh": "Renderer にメッシュが割り当てられていません。",
-
     "section_selection": "範囲選択",
     "btn_pick_uv": "UVアイランド",
     "btn_pick_poly": "つながったポリゴン",
@@ -47,13 +48,11 @@
     "selection_info_format": "{0} {1} / {2} 三角形を選択中",
     "unit_island": "アイランド",
     "unit_group": "グループ",
-
     "section_prefab_output": "Prefab化",
     "label_part_name": "Prefab名",
     "label_output_folder": "保存先フォルダ",
     "btn_extract_part": "選択範囲をパーツPrefabとして書き出し",
     "btn_extract_submesh": "全サブメッシュを個別のPrefabに一括書き出し",
-
     "dialog_error_title": "エラー",
     "dialog_no_triangles": "選択された三角形がありません。",
     "dialog_extract_failed": "切り出し失敗",
@@ -61,7 +60,6 @@
     "extract_success_format": "パーツを出力しました: {0}\n△{1} / 頂点{2} / 複製範囲 {3}\n除去: オブジェクト {4} / コンポーネント {5} (うち不要な PhysBone {6})",
     "submesh_batch_success_format": "{0}/{1} 個のサブメッシュを個別Prefabとして出力しました。",
     "submesh_batch_progress_format": "サブメッシュ {0}/{1} を書き出し中...",
-
     "err_mesh_not_found": "メッシュが見つかりません。",
     "err_mesh_not_readable": "メッシュ '{0}' が Read/Write 無効です。モデルのインポート設定で Read/Write Enabled を有効にしてください。",
     "err_no_triangles_in_submesh": "対象サブメッシュに三角形がありません。",
@@ -90,7 +88,6 @@
     "ver_reload_tooltip": "Recheck for updates",
     "lang_button_text": "JA",
     "lang_button_tooltip": "日本語に切り替え (Switch to Japanese)",
-
     "section_target_mesh": "Target Mesh",
     "btn_pick_source": "From Selection",
     "tooltip_pick_source": "Set the currently selected mesh",
@@ -102,8 +99,10 @@
     "source_info_analyzing": "Analyzing...",
     "source_info_format": "{0} Triangles / {1} UV Islands / {2} Connected Polygons",
     "source_info_no_uv": " (No UV{0})",
+    "warn_source_parent_inactive": "⚠️ Target mesh parent object is inactive and not rendered in the scene",
+    "warn_source_self_inactive": "⚠️ Target mesh object is inactive in the scene",
+    "warn_source_renderer_disabled": "⚠️ Target mesh Renderer is disabled",
     "error_no_mesh": "No mesh assigned to Renderer.",
-
     "section_selection": "Range Selection",
     "btn_pick_uv": "UV Island",
     "btn_pick_poly": "Connected Polygons",
@@ -130,13 +129,11 @@
     "selection_info_format": "{0} {1} / {2} Triangles selected",
     "unit_island": "islands",
     "unit_group": "groups",
-
     "section_prefab_output": "Create Prefab",
     "label_part_name": "Prefab Name",
     "label_output_folder": "Output Folder",
     "btn_extract_part": "Export Selection as Part Prefab",
     "btn_extract_submesh": "Batch Export All Submeshes as Individual Prefabs",
-
     "dialog_error_title": "Error",
     "dialog_no_triangles": "No triangles selected.",
     "dialog_extract_failed": "Extraction Failed",
@@ -144,7 +141,6 @@
     "extract_success_format": "Exported part: {0}\n△{1} / {2} Vertices / Scope {3}\nRemoved: {4} Objects / {5} Components ({6} unnecessary PhysBones)",
     "submesh_batch_success_format": "Exported {0}/{1} submeshes as individual prefabs.",
     "submesh_batch_progress_format": "Exporting submesh {0}/{1}...",
-
     "err_mesh_not_found": "Mesh not found.",
     "err_mesh_not_readable": "Mesh '{0}' is not readable. Enable Read/Write Enabled in the model's import settings.",
     "err_no_triangles_in_submesh": "The target submesh contains no triangles.",

@@ -67,6 +67,7 @@ Section to export the selected mesh as new assets.
 ## Key Highlights & Design Safety
 
 - **Zero Alignment Offset**: Original Transform values, bone hierarchies, and localBounds are precisely preserved, so dropping the exported Prefab under its original parent aligns it perfectly.
+- **Automatic Activation**: Even if the source mesh or parent avatar is inactive in the scene, the exported Prefab and placed instance are always saved and instantiated in an active state (a note is displayed in the info section when inactive).
 - **Automatic Component Filtering**: Automatically keeps only the bones, PhysBones, PhysBoneColliders, and Constraints relevant to the extracted mesh. Unrelated avatar components (such as VRC Avatar Descriptor or Animator) will never be mixed in.
 - **Non-Destructive**: Never modifies original avatars or source mesh assets.
 - **Supports Both Skinned and Static Meshes**: Works seamlessly with SkinnedMeshRenderers (clothes, hair, body) and static MeshRenderers (accessories, props).

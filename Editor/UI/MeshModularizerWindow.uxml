@@ -26,6 +26,7 @@
                     <ui:DropdownField name="uv-dropdown" class="mm-uv-dropdown" />
                 </ui:VisualElement>
                 <ui:Label name="source-info" class="mm-note" />
+                <ui:Label name="source-warning" class="mm-warning" style="display: none;" />
             </ui:VisualElement>
 
             <!-- 2. 範囲選択 -->

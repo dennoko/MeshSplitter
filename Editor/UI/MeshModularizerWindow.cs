@@ -37,11 +37,12 @@ namespace Dennokoworks.MeshModularizer
         private ObjectField _sourceField;
         private DropdownField _submeshDropdown;
         private DropdownField _uvDropdown;
+        private Label _sourceInfoLabel;
+        private Label _sourceWarningLabel;
         private Button _pickUvBtn;
         private Button _pickPolyBtn;
         private Button _sceneSelectToggleBtn;
         private Toggle _sceneXrayToggle;
-        private Label _sourceInfoLabel;
         private Label _selectionInfoLabel;
         private TextField _partNameField;
         private TextField _outputFolderField;
@@ -96,6 +97,14 @@ namespace Dennokoworks.MeshModularizer
         {
             Render();
             SceneView.RepaintAll();
+        }
+
+        private void OnHierarchyChange()
+        {
+            if (_state.Source != null)
+            {
+                RenderSourceWarning();
+            }
         }
 
         public void CreateGUI()
@@ -181,6 +190,9 @@ namespace Dennokoworks.MeshModularizer
             {
                 _uvDropdown.RegisterValueChangedCallback(OnUvDropdownChanged);
             }
+
+            _sourceInfoLabel = root.Q<Label>("source-info");
+            _sourceWarningLabel = root.Q<Label>("source-warning");
 
             root.Q<Button>("source-from-selection").clicked += () => Dispatch(new CmdPickSourceFromSelection());
 
@@ -669,6 +681,7 @@ namespace Dennokoworks.MeshModularizer
             RenderUvChoices();
 
             _sourceInfoLabel.text = DescribeSource();
+            RenderSourceWarning();
             _selectionInfoLabel.text = DescribeSelection();
 
             SetButtonActive(_pickUvBtn, _state.PickMode == MmPickMode.UvIsland);
@@ -768,6 +781,37 @@ namespace Dennokoworks.MeshModularizer
             var t = _state.Topology;
             return MmLocalization.Tr("source_info_format", t.Triangles.Length, t.UvIslandCount, t.PolyGroupCount)
                    + (t.HasUv ? "" : MmLocalization.Tr("source_info_no_uv", t.UvChannel));
+        }
+
+        private void RenderSourceWarning()
+        {
+            if (_sourceWarningLabel == null) return;
+
+            if (_state.Source == null)
+            {
+                _sourceWarningLabel.style.display = DisplayStyle.None;
+                return;
+            }
+
+            if (!_state.Source.gameObject.activeSelf)
+            {
+                _sourceWarningLabel.text = MmLocalization.Tr("warn_source_self_inactive");
+                _sourceWarningLabel.style.display = DisplayStyle.Flex;
+            }
+            else if (!_state.Source.gameObject.activeInHierarchy)
+            {
+                _sourceWarningLabel.text = MmLocalization.Tr("warn_source_parent_inactive");
+                _sourceWarningLabel.style.display = DisplayStyle.Flex;
+            }
+            else if (!_state.Source.enabled)
+            {
+                _sourceWarningLabel.text = MmLocalization.Tr("warn_source_renderer_disabled");
+                _sourceWarningLabel.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                _sourceWarningLabel.style.display = DisplayStyle.None;
+            }
         }
 
         private string DescribeSelection()
