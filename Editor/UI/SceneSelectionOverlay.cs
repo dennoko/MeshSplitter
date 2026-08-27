@@ -12,6 +12,7 @@ namespace Dennokoworks.MeshModularizer
     {
         private static readonly Color SelectedColor = new Color32(0x9d, 0xd2, 0xff, 0xE6);
         private static readonly Color HoverColor = new Color32(0xff, 0xb7, 0x4d, 0xFF);
+        /// <summary>1 回の描画で線を張る三角形数の上限 (走査範囲ではなく描画数の上限)。</summary>
         private const int MaxDrawTriangles = 20000;
 
         private readonly Action<IMmAction> _dispatch;
@@ -199,13 +200,17 @@ namespace Dennokoworks.MeshModularizer
             var selLines = new List<Vector3>();
             var hovLines = new List<Vector3>();
 
-            int count = Mathf.Min(triangles.Length, MaxDrawTriangles);
-            for (int i = 0; i < count; i++)
+            // 上限は「走査する三角形数」ではなく「線を張る三角形数」に掛ける。
+            // 走査を打ち切ると、選択範囲がインデックスの後半にあるメッシュ (2 万三角形超) で
+            // 選択したはずの部分がシーンビューに一切表示されなくなる。
+            int budget = MaxDrawTriangles;
+            for (int i = 0; i < triangles.Length && budget > 0; i++)
             {
                 int g = groupOf[i];
                 bool isSel = state.Selection.Contains(g);
                 bool isHov = g == _hoverGroup;
                 if (!isSel && !isHov) continue;
+                budget--;
 
                 var tri = triangles[i];
                 if ((uint)tri.V0 >= world.Length || (uint)tri.V1 >= world.Length || (uint)tri.V2 >= world.Length) continue;
