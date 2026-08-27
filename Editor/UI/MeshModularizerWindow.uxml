@@ -19,7 +19,10 @@
                 <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" tooltip="選択中のメッシュをセットします" />
                 <ui:Button name="source-reload-button" text="↻" class="mm-icon" tooltip="対象メッシュを再読み込み" />
             </ui:VisualElement>
-            <ui:DropdownField name="submesh-dropdown" label="サブメッシュを指定" />
+            <ui:VisualElement class="mm-row">
+                <ui:DropdownField name="submesh-dropdown" label="サブメッシュを指定" class="mm-grow" />
+                <ui:DropdownField name="uv-dropdown" class="mm-uv-dropdown" />
+            </ui:VisualElement>
             <ui:Label name="source-info" class="mm-note" />
         </ui:VisualElement>
 

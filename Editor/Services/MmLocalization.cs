@@ -39,6 +39,7 @@ namespace Dennokoworks.MeshModularizer
             public string tooltip_pick_source;
             public string tooltip_reload_source;
             public string label_submesh;
+            public string tooltip_uv_channel;
             public string submesh_choice_all;
             public string source_info_empty;
             public string source_info_analyzing;

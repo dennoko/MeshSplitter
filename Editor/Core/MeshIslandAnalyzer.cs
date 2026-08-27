@@ -14,6 +14,11 @@ namespace Dennokoworks.MeshModularizer
 
         public static MeshTopology Analyze(Mesh mesh, int submeshFilter, out string error)
         {
+            return Analyze(mesh, submeshFilter, 0, out error);
+        }
+
+        public static MeshTopology Analyze(Mesh mesh, int submeshFilter, int uvChannel, out string error)
+        {
             error = null;
 
             if (mesh == null)
@@ -29,8 +34,11 @@ namespace Dennokoworks.MeshModularizer
 
             var vertices = mesh.vertices;
             var uvs = new List<Vector2>();
-            mesh.GetUVs(0, uvs);
-            bool hasUv = uvs.Count == vertices.Length;
+            if (uvChannel >= 0 && uvChannel < 8)
+            {
+                mesh.GetUVs(uvChannel, uvs);
+            }
+            bool hasUv = uvs.Count == vertices.Length && uvs.Count > 0;
 
             var tris = new List<MeshTopology.Tri>(mesh.triangles.Length / 3);
             for (int sub = 0; sub < mesh.subMeshCount; sub++)
@@ -75,7 +83,7 @@ namespace Dennokoworks.MeshModularizer
 
             var polyGroupOf = GroupByKey(triangles, out int polyGroupCount, t => PositionKeys(t, vertices));
 
-            return new MeshTopology(mesh, submeshFilter, triangles, hasUv,
+            return new MeshTopology(mesh, submeshFilter, uvChannel, triangles, hasUv,
                 uvIslandOf, uvIslandCount, polyGroupOf, polyGroupCount);
         }
 

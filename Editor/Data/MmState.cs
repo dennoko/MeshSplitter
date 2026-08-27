@@ -9,6 +9,7 @@ namespace Dennokoworks.MeshModularizer
     {
         public Renderer Source;
         public int SourceSubmesh = -1; // -1: 全て
+        public int SourceUvChannel = 0; // 0: UV0, 1: UV1, ...
 
         public MeshTopology Topology;
         public string TopologyError;
@@ -44,6 +45,7 @@ namespace Dennokoworks.MeshModularizer
             {
                 Source = Source,
                 SourceSubmesh = SourceSubmesh,
+                SourceUvChannel = SourceUvChannel,
                 Topology = Topology,
                 TopologyError = TopologyError,
                 PickMode = PickMode,

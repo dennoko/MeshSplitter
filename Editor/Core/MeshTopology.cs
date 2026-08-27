@@ -28,6 +28,7 @@ namespace Dennokoworks.MeshModularizer
 
         public Mesh Mesh { get; }
         public int SubmeshFilter { get; }
+        public int UvChannel { get; }
         public Tri[] Triangles { get; }
         public bool HasUv { get; }
 
@@ -40,12 +41,13 @@ namespace Dennokoworks.MeshModularizer
         public int PolyGroupCount => _polyGroupBounds.Length;
 
         internal MeshTopology(
-            Mesh mesh, int submeshFilter, Tri[] triangles, bool hasUv,
+            Mesh mesh, int submeshFilter, int uvChannel, Tri[] triangles, bool hasUv,
             int[] uvIslandOf, int uvIslandCount,
             int[] polyGroupOf, int polyGroupCount)
         {
             Mesh = mesh;
             SubmeshFilter = submeshFilter;
+            UvChannel = uvChannel;
             Triangles = triangles;
             HasUv = hasUv;
             _uvIslandOf = uvIslandOf;

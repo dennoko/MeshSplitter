@@ -16,6 +16,12 @@
     width: 96px;
 }
 
+.dennoko-root .unity-dropdown-field.mm-uv-dropdown {
+    flex-shrink: 0;
+    width: 76px;
+    margin-left: 4px;
+}
+
 .dennoko-root .unity-button.mm-fill {
     flex-grow: 1;
     flex-shrink: 1;

@@ -17,6 +17,8 @@ namespace Dennokoworks.MeshModularizer
             window.Show();
         }
 
+        private const int UvChannelCount = 8;
+
         private MmState _state = new MmState();
 
         // ドメインリロード (スクリプト再コンパイル / Play モードの出入り) をまたいで
@@ -28,11 +30,13 @@ namespace Dennokoworks.MeshModularizer
         // ポリゴンの選択はリセットし、トポロジは復元時に解析し直す。
         [SerializeField] private Renderer _persistedSource;
         [SerializeField] private int _persistedSubmesh = -1; // -1: すべて
+        [SerializeField] private int _persistedUvChannel = 0; // 0: UV0
         private SceneSelectionOverlay _sceneOverlay;
         private UvPreviewElement _uvPreview;
 
         private ObjectField _sourceField;
         private DropdownField _submeshDropdown;
+        private DropdownField _uvDropdown;
         private Button _pickUvBtn;
         private Button _pickPolyBtn;
         private Button _sceneSelectToggleBtn;
@@ -145,6 +149,12 @@ namespace Dennokoworks.MeshModularizer
             _submeshDropdown = root.Q<DropdownField>("submesh-dropdown");
             _submeshDropdown.RegisterValueChangedCallback(OnSubmeshDropdownChanged);
 
+            _uvDropdown = root.Q<DropdownField>("uv-dropdown");
+            if (_uvDropdown != null)
+            {
+                _uvDropdown.RegisterValueChangedCallback(OnUvDropdownChanged);
+            }
+
             root.Q<Button>("source-from-selection").clicked += () => Dispatch(new CmdPickSourceFromSelection());
 
             var sourceReloadBtn = root.Q<Button>("source-reload-button");
@@ -200,12 +210,19 @@ namespace Dennokoworks.MeshModularizer
                 case SetSource a:
                     next.Source = a.Source;
                     next.SourceSubmesh = -1;
+                    next.SourceUvChannel = 0;
                     next.Selection.Clear();
                     AnalyzeMesh(next);
                     break;
 
                 case SetSourceSubmesh a:
                     next.SourceSubmesh = a.SubmeshIndex;
+                    next.Selection.Clear();
+                    AnalyzeMesh(next);
+                    break;
+
+                case SetSourceUvChannel a:
+                    next.SourceUvChannel = a.UvChannel;
                     next.Selection.Clear();
                     AnalyzeMesh(next);
                     break;
@@ -219,6 +236,7 @@ namespace Dennokoworks.MeshModularizer
                         {
                             next.Source = r;
                             next.SourceSubmesh = -1;
+                            next.SourceUvChannel = 0;
                             next.Selection.Clear();
                             AnalyzeMesh(next);
                         }
@@ -302,6 +320,7 @@ namespace Dennokoworks.MeshModularizer
             _state = next;
             _persistedSource = _state.Source;
             _persistedSubmesh = _state.SourceSubmesh;
+            _persistedUvChannel = _state.SourceUvChannel;
             Render();
         }
 
@@ -316,8 +335,11 @@ namespace Dennokoworks.MeshModularizer
 
             _state.Source = _persistedSource;
             _state.SourceSubmesh = ClampSubmesh(_persistedSubmesh, GetSharedMesh(_persistedSource));
-            _persistedSubmesh = _state.SourceSubmesh;
+            _state.SourceUvChannel = _persistedUvChannel;
+            // UV チャンネルの丸めは AnalyzeMesh 側でまとめて行うので、保持値の書き戻しは解析後。
             AnalyzeMesh(_state);
+            _persistedSubmesh = _state.SourceSubmesh;
+            _persistedUvChannel = _state.SourceUvChannel;
         }
 
         /// <summary>
@@ -330,6 +352,34 @@ namespace Dennokoworks.MeshModularizer
         {
             if (submesh < 0 || mesh == null) return -1;
             return submesh < mesh.subMeshCount ? submesh : -1;
+        }
+
+        /// <summary>
+        /// 指定された UV チャンネルを現在のメッシュに合わせる。
+        /// メッシュが差し替わって該当チャンネルが無くなっていると、解析は「UV なし」扱いに落ちる一方で
+        /// ドロップダウンは別のチャンネルを表示してしまい、表示と状態が食い違うため、
+        /// 実在する最小のチャンネルへ戻す。UV を一切持たないメッシュでは 0 を返す。
+        /// </summary>
+        private static int ClampUvChannel(int channel, Mesh mesh)
+        {
+            if (mesh == null) return 0;
+            if (HasUvChannel(mesh, channel)) return channel;
+
+            for (int ch = 0; ch < UvChannelCount; ch++)
+            {
+                if (HasUvChannel(mesh, ch)) return ch;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// メッシュが指定 UV チャンネルを持つか。
+        /// 頂点属性の宣言を見るだけなので、Read/Write 無効なメッシュでも安全に呼べる。
+        /// </summary>
+        private static bool HasUvChannel(Mesh mesh, int channel)
+        {
+            if (mesh == null || channel < 0 || channel >= UvChannelCount) return false;
+            return mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0 + channel);
         }
 
         /// <summary>Renderer に割り当てられているメッシュ。取得できなければ null。</summary>
@@ -357,7 +407,8 @@ namespace Dennokoworks.MeshModularizer
                 return;
             }
 
-            state.Topology = MeshIslandAnalyzer.Analyze(mesh, state.SourceSubmesh, out string error);
+            state.SourceUvChannel = ClampUvChannel(state.SourceUvChannel, mesh);
+            state.Topology = MeshIslandAnalyzer.Analyze(mesh, state.SourceSubmesh, state.SourceUvChannel, out string error);
             state.TopologyError = error;
         }
 
@@ -487,6 +538,7 @@ namespace Dennokoworks.MeshModularizer
             if (_sourceField.value != _state.Source) _sourceField.SetValueWithoutNotify(_state.Source);
 
             RenderSubmeshChoices();
+            RenderUvChoices();
 
             _sourceInfoLabel.text = DescribeSource();
             _selectionInfoLabel.text = DescribeSelection();
@@ -522,6 +574,21 @@ namespace Dennokoworks.MeshModularizer
             Dispatch(new SetSourceSubmesh(index <= 0 ? -1 : index - 1));
         }
 
+        private static string UvChannelLabel(int channel) => $"UV{channel}";
+
+        private void OnUvDropdownChanged(ChangeEvent<string> evt)
+        {
+            // 選択肢は実在するチャンネルだけを並べているので、番号はラベルから取り出す
+            for (int ch = 0; ch < UvChannelCount; ch++)
+            {
+                if (evt.newValue == UvChannelLabel(ch))
+                {
+                    Dispatch(new SetSourceUvChannel(ch));
+                    return;
+                }
+            }
+        }
+
         private void RenderSubmeshChoices()
         {
             Mesh mesh = GetSharedMesh(_state.Source);
@@ -542,6 +609,26 @@ namespace Dennokoworks.MeshModularizer
             _submeshDropdown.SetEnabled(count > 1);
         }
 
+        private void RenderUvChoices()
+        {
+            if (_uvDropdown == null) return;
+
+            Mesh mesh = GetSharedMesh(_state.Source);
+            var choices = new List<string>();
+            for (int ch = 0; ch < UvChannelCount; ch++)
+            {
+                if (HasUvChannel(mesh, ch)) choices.Add(UvChannelLabel(ch));
+            }
+            // UV を持たないメッシュでも空のドロップダウンにはしない
+            if (choices.Count == 0) choices.Add(UvChannelLabel(0));
+            _uvDropdown.choices = choices;
+
+            string selectedValue = UvChannelLabel(_state.SourceUvChannel);
+            if (!choices.Contains(selectedValue)) selectedValue = choices[0];
+            _uvDropdown.SetValueWithoutNotify(selectedValue);
+            _uvDropdown.SetEnabled(choices.Count > 1);
+        }
+
         private string DescribeSource()
         {
             if (_state.Source == null) return MmLocalization.Tr("source_info_empty");
@@ -550,7 +637,7 @@ namespace Dennokoworks.MeshModularizer
 
             var t = _state.Topology;
             return MmLocalization.Tr("source_info_format", t.Triangles.Length, t.UvIslandCount, t.PolyGroupCount)
-                   + (t.HasUv ? "" : MmLocalization.Tr("source_info_no_uv"));
+                   + (t.HasUv ? "" : MmLocalization.Tr("source_info_no_uv", t.UvChannel));
         }
 
         private string DescribeSelection()
@@ -615,6 +702,8 @@ namespace Dennokoworks.MeshModularizer
             if (srcReload != null) srcReload.tooltip = MmLocalization.Tr("tooltip_reload_source");
 
             if (_submeshDropdown != null) _submeshDropdown.label = MmLocalization.Tr("label_submesh");
+
+            if (_uvDropdown != null) _uvDropdown.tooltip = MmLocalization.Tr("tooltip_uv_channel");
 
             var hSelection = root.Q<TextElement>("header-selection");
             if (hSelection != null) hSelection.text = MmLocalization.Tr("section_selection");

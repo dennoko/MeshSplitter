@@ -17,6 +17,12 @@ namespace Dennokoworks.MeshModularizer
         public SetSourceSubmesh(int submeshIndex) => SubmeshIndex = submeshIndex;
     }
 
+    public sealed class SetSourceUvChannel : IMmAction
+    {
+        public int UvChannel { get; }
+        public SetSourceUvChannel(int uvChannel) => UvChannel = uvChannel;
+    }
+
     public sealed class SetPickMode : IMmAction
     {
         public MmPickMode Mode { get; }
