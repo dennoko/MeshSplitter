@@ -9,7 +9,7 @@ namespace Dennokoworks.MeshModularizer
 {
     public sealed class MeshModularizerWindow : EditorWindow
     {
-        [MenuItem("dennokoworks/Mesh Splitter", false, 200)]
+        [MenuItem("dennokoworks/Mesh Splitter", false)]
         public static void Open()
         {
             var window = GetWindow<MeshModularizerWindow>("Mesh Splitter");
