@@ -320,6 +320,16 @@ namespace Dennokoworks.MeshModularizer
             AnalyzeMesh(_state);
         }
 
+        /// <summary>Renderer に割り当てられているメッシュ。取得できなければ null。</summary>
+        private static Mesh GetSharedMesh(Renderer renderer)
+        {
+            if (renderer == null) return null;
+            if (renderer is SkinnedMeshRenderer skinned) return skinned.sharedMesh;
+
+            var filter = renderer.GetComponent<MeshFilter>();
+            return filter != null ? filter.sharedMesh : null;
+        }
+
         private void AnalyzeMesh(MmState state)
         {
             state.Topology = null;
@@ -327,9 +337,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (state.Source == null) return;
 
-            Mesh mesh = null;
-            if (state.Source is SkinnedMeshRenderer smr) mesh = smr.sharedMesh;
-            else if (state.Source.GetComponent<MeshFilter>() is MeshFilter mf) mesh = mf.sharedMesh;
+            Mesh mesh = GetSharedMesh(state.Source);
 
             if (mesh == null)
             {
@@ -390,9 +398,7 @@ namespace Dennokoworks.MeshModularizer
         private void ExtractPerSubmesh(MmState state)
         {
             if (state.Source == null) return;
-            Mesh mesh = null;
-            if (state.Source is SkinnedMeshRenderer smr) mesh = smr.sharedMesh;
-            else if (state.Source.GetComponent<MeshFilter>() is MeshFilter mf) mesh = mf.sharedMesh;
+            Mesh mesh = GetSharedMesh(state.Source);
 
             if (mesh == null || mesh.subMeshCount <= 1) return;
 
@@ -487,9 +493,7 @@ namespace Dennokoworks.MeshModularizer
 
             _extractBtn.SetEnabled(_state.Topology != null && _state.Selection.Count > 0);
 
-            Mesh mesh = null;
-            if (_state.Source is SkinnedMeshRenderer smr) mesh = smr.sharedMesh;
-            else if (_state.Source != null && _state.Source.GetComponent<MeshFilter>() is MeshFilter mf) mesh = mf.sharedMesh;
+            Mesh mesh = GetSharedMesh(_state.Source);
             _extractSubmeshBtn.SetEnabled(mesh != null && mesh.subMeshCount > 1);
 
             _extractStatusLabel.text = _state.LastError ?? _state.LastMessage ?? "";
@@ -508,9 +512,7 @@ namespace Dennokoworks.MeshModularizer
 
         private void RenderSubmeshChoices()
         {
-            Mesh mesh = null;
-            if (_state.Source is SkinnedMeshRenderer smr) mesh = smr.sharedMesh;
-            else if (_state.Source != null && _state.Source.GetComponent<MeshFilter>() is MeshFilter mf) mesh = mf.sharedMesh;
+            Mesh mesh = GetSharedMesh(_state.Source);
 
             int count = mesh != null ? mesh.subMeshCount : 0;
             if (count != _submeshChoiceCount || _submeshDropdown.choices == null || _submeshDropdown.choices.Count == 0)
