@@ -55,6 +55,7 @@ namespace Dennokoworks.MeshModularizer
             public string btn_select_invert;
             public string btn_scene_select_on;
             public string btn_scene_select_off;
+            public string tooltip_scene_select;
             public string toggle_scene_xray;
             public string btn_color_options;
             public string header_color_options;

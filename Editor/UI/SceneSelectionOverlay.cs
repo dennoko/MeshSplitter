@@ -57,7 +57,13 @@ namespace Dennokoworks.MeshModularizer
             if (_state == null || _state.Source != state.Source || _state.Topology != state.Topology)
             {
                 _geometry.Invalidate();
+            }
+
+            if (_state == null || _state.Source != state.Source || _state.Topology != state.Topology || !state.SceneSelectionEnabled)
+            {
                 _hoverGroup = -1;
+                _lastHoverPosition = new Vector2(float.NaN, float.NaN);
+                _hoverLines = Array.Empty<Vector3>();
             }
 
             _state = state;
@@ -76,6 +82,14 @@ namespace Dennokoworks.MeshModularizer
             var e = Event.current;
             switch (e.type)
             {
+                case EventType.KeyDown:
+                    if (state.SceneSelectionEnabled && e.keyCode == KeyCode.Escape)
+                    {
+                        _dispatch(new ToggleSceneSelection());
+                        e.Use();
+                    }
+                    break;
+
                 case EventType.Repaint:
                     if (state.SceneOverlayEnabled) DrawOverlay(state, sceneView);
                     break;
@@ -133,6 +147,16 @@ namespace Dennokoworks.MeshModularizer
 
         private void UpdateHover(MmState state, SceneView sceneView, Vector2 mousePos)
         {
+            if (!state.SceneSelectionEnabled)
+            {
+                if (_hoverGroup != -1)
+                {
+                    _hoverGroup = -1;
+                    sceneView.Repaint();
+                }
+                return;
+            }
+
             if (mousePos == _lastHoverPosition) return;
             _lastHoverPosition = mousePos;
 
@@ -170,7 +194,7 @@ namespace Dennokoworks.MeshModularizer
                 }
             }
 
-            if (_hoverLines.Length > 0 && _hoverGroup >= 0)
+            if (state.SceneSelectionEnabled && _hoverLines.Length > 0 && _hoverGroup >= 0)
             {
                 Handles.color = MmColorSettings.SceneHoverColor;
                 for (int i = 0; i < _hoverLines.Length; i += 2)
@@ -199,6 +223,7 @@ namespace Dennokoworks.MeshModularizer
 
             var selLines = new List<Vector3>();
             var hovLines = new List<Vector3>();
+            bool enableHover = state.SceneSelectionEnabled && _hoverGroup >= 0;
 
             // 上限は「走査する三角形数」ではなく「線を張る三角形数」に掛ける。
             // 走査を打ち切ると、選択範囲がインデックスの後半にあるメッシュ (2 万三角形超) で
@@ -208,7 +233,7 @@ namespace Dennokoworks.MeshModularizer
             {
                 int g = groupOf[i];
                 bool isSel = state.Selection.Contains(g);
-                bool isHov = g == _hoverGroup;
+                bool isHov = enableHover && (g == _hoverGroup);
                 if (!isSel && !isHov) continue;
                 budget--;
 

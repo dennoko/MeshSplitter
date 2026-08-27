@@ -52,7 +52,7 @@ Section to choose which polygons to extract.
   - Works with materials that read their main texture (`_MainTex`) from UV0, such as lilToon, Poiyomi and the Unity standard shaders. Tiling and offset are applied, but the texture is drawn only once rather than repeated.
   - The texture is not shown when: the submesh is set to **All**, a channel of `UV1` or later is selected, or a Poiyomi material has its main texture UV set to anything other than `UV0`.
   - UV animation settings such as scrolling and rotation are not reflected.
-- **Scene Click Selection (ON/OFF)**: Enables direct clicking and painting on the mesh in the 3D Scene view.
+- **Scene Click Selection (ON/OFF)**: Enables direct clicking and painting on the mesh in the 3D Scene view (Press **Esc** to disable).
 - **Wireframe X-Ray**: Enables see-through wireframe rendering through the object for better visibility.
 
 ### 4. Create Prefab

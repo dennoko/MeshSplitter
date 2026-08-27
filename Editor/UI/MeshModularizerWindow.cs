@@ -124,6 +124,14 @@ namespace Dennokoworks.MeshModularizer
             ApplyLocalization();
             StartVersionCheck();
             RestorePersistedSource();
+            rootVisualElement.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (_state.SceneSelectionEnabled && evt.keyCode == KeyCode.Escape)
+                {
+                    Dispatch(new ToggleSceneSelection());
+                    evt.StopPropagation();
+                }
+            });
             Render();
         }
 
@@ -842,6 +850,7 @@ namespace Dennokoworks.MeshModularizer
             var btnSelInv = root.Q<Button>("select-invert");
             if (btnSelInv != null) btnSelInv.text = MmLocalization.Tr("btn_select_invert");
 
+            if (_sceneSelectToggleBtn != null) _sceneSelectToggleBtn.tooltip = MmLocalization.Tr("tooltip_scene_select");
             if (_sceneXrayToggle != null) _sceneXrayToggle.label = MmLocalization.Tr("toggle_scene_xray");
 
             var hPrefab = root.Q<TextElement>("header-prefab-output");
