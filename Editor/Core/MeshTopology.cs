@@ -89,9 +89,20 @@ namespace Dennokoworks.MeshModularizer
             for (int i = 0; i < Triangles.Length; i++)
             {
                 var t = Triangles[i];
+                if (IsDegenerateUv(t)) continue;
                 if (PointInTriangle(uv, t.U0, t.U1, t.U2)) return groupOf[i];
             }
             return -1;
+        }
+
+        /// <summary>
+        /// UV 上で面積を持たない三角形か。潰れた三角形は 3 辺すべての外積が 0 になり、
+        /// <see cref="PointInTriangle"/> がどんな座標に対しても true を返してしまうため、
+        /// クリック判定からは除外する必要がある。
+        /// </summary>
+        private static bool IsDegenerateUv(Tri t)
+        {
+            return Mathf.Abs(Sign(t.U0, t.U1, t.U2)) <= UvAreaEpsilon;
         }
 
         public List<int> PickGroupsInRect(MmPickMode mode, Rect rect)
@@ -158,6 +169,9 @@ namespace Dennokoworks.MeshModularizer
             max.x = Mathf.Max(max.x, p.x);
             max.y = Mathf.Max(max.y, p.y);
         }
+
+        /// <summary>UV 上の三角形が「潰れている」とみなす符号付き面積 (の 2 倍) のしきい値。</summary>
+        private const float UvAreaEpsilon = 1e-12f;
 
         private static bool PointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
         {
