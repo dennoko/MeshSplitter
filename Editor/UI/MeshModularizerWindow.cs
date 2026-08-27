@@ -20,13 +20,14 @@ namespace Dennokoworks.MeshModularizer
         private MmState _state = new MmState();
 
         // ドメインリロード (スクリプト再コンパイル / Play モードの出入り) をまたいで
-        // 対象メッシュだけを保持する。EditorWindow は ScriptableObject なので、
-        // [SerializeField] を付けたフィールドだけがリロード後も残る。
+        // 対象メッシュとサブメッシュ指定を保持する。EditorWindow は ScriptableObject
+        // なので、[SerializeField] を付けたフィールドだけがリロード後も残る。
         //
         // MmState 全体は保持しない: MeshTopology も Selection (HashSet) も
         // シリアライズできず、中途半端に欠けた状態を復元することになるため。
         // ポリゴンの選択はリセットし、トポロジは復元時に解析し直す。
         [SerializeField] private Renderer _persistedSource;
+        [SerializeField] private int _persistedSubmesh = -1; // -1: すべて
         private SceneSelectionOverlay _sceneOverlay;
         private UvPreviewElement _uvPreview;
 
@@ -304,11 +305,12 @@ namespace Dennokoworks.MeshModularizer
 
             _state = next;
             _persistedSource = _state.Source;
+            _persistedSubmesh = _state.SourceSubmesh;
             Render();
         }
 
         /// <summary>
-        /// ドメインリロード前に選んでいた対象メッシュを復元する。
+        /// ドメインリロード前に選んでいた対象メッシュとサブメッシュ指定を復元する。
         /// トポロジはシリアライズできないので、ここで解析し直す。
         /// </summary>
         private void RestorePersistedSource()
@@ -317,7 +319,21 @@ namespace Dennokoworks.MeshModularizer
             if (_persistedSource == null || _state.Source != null) return;
 
             _state.Source = _persistedSource;
+            _state.SourceSubmesh = ClampSubmesh(_persistedSubmesh, GetSharedMesh(_persistedSource));
+            _persistedSubmesh = _state.SourceSubmesh;
             AnalyzeMesh(_state);
+        }
+
+        /// <summary>
+        /// 保持していたサブメッシュ番号を現在のメッシュに合わせる。
+        /// リロードを挟む間に Renderer へ別のメッシュが差し替わっていると範囲外になり得るため、
+        /// その場合は「すべて」(-1) に戻す。範囲外のまま解析すると
+        /// 「対象サブメッシュに三角形がありません」で止まってしまう。
+        /// </summary>
+        private static int ClampSubmesh(int submesh, Mesh mesh)
+        {
+            if (submesh < 0 || mesh == null) return -1;
+            return submesh < mesh.subMeshCount ? submesh : -1;
         }
 
         /// <summary>Renderer に割り当てられているメッシュ。取得できなければ null。</summary>
