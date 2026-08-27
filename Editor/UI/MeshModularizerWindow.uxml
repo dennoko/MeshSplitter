@@ -13,7 +13,7 @@
     <ui:ScrollView class="dennoko-scroll mm-grow">
         <!-- 1. 対象メッシュ -->
         <ui:VisualElement class="dennoko-card">
-            <ui:TextElement name="header-target-mesh" text="対象メッシュ" class="dennoko-heading-2" />
+            <ui:TextElement name="header-target-mesh" text="対象メッシュ" class="dennoko-section-title dennoko-card-header" />
             <ui:VisualElement class="mm-row">
                 <uie:ObjectField name="source-field" class="mm-grow" allow-scene-objects="true" />
                 <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" tooltip="選択中のメッシュをセットします" />
@@ -25,7 +25,7 @@
 
         <!-- 2. 範囲選択 -->
         <ui:VisualElement class="dennoko-card">
-            <ui:TextElement name="header-selection" text="範囲選択" class="dennoko-heading-2" />
+            <ui:TextElement name="header-selection" text="範囲選択" class="dennoko-section-title dennoko-card-header" />
             <ui:VisualElement class="mm-row">
                 <ui:Button name="pick-uv" text="UVアイランド" class="mm-fill" />
                 <ui:Button name="pick-poly" text="つながったポリゴン" class="mm-fill" />
@@ -48,7 +48,7 @@
 
         <!-- 3. 出力設定 -->
         <ui:VisualElement class="dennoko-card">
-            <ui:TextElement name="header-prefab-output" text="Prefab化" class="dennoko-heading-2" />
+            <ui:TextElement name="header-prefab-output" text="Prefab化" class="dennoko-section-title dennoko-card-header" />
             <ui:TextField name="part-name" label="Prefab名" value="MeshPart" />
             <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MeshSplitter_Output" />
 
