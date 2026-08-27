@@ -61,14 +61,34 @@ namespace Dennokoworks.MeshModularizer
             MeshTopology topology, MmPickMode mode, IReadOnlyCollection<int> selection, bool addMode)
         {
             bool topologyChanged = !ReferenceEquals(_topology, topology) || _mode != mode;
+            bool selectionChanged = !SelectionMatches(selection);
 
             _topology = topology;
             _mode = mode;
-            _selection = selection != null ? new HashSet<int>(selection) : new HashSet<int>();
+            if (selectionChanged)
+            {
+                _selection = selection != null ? new HashSet<int>(selection) : new HashSet<int>();
+            }
             _addMode = addMode;
+
+            // Repaint() は全三角形をソフトウェアラスタライズするため、見た目に影響しない
+            // 状態変化 (Prefab 名の入力など) では走らせない。
+            if (!topologyChanged && !selectionChanged) return;
 
             if (topologyChanged) ResetView();
             Repaint();
+        }
+
+        /// <summary>現在保持している選択と内容が一致するか。</summary>
+        private bool SelectionMatches(IReadOnlyCollection<int> other)
+        {
+            if (other == null) return _selection.Count == 0;
+            if (other.Count != _selection.Count) return false;
+            foreach (int group in other)
+            {
+                if (!_selection.Contains(group)) return false;
+            }
+            return true;
         }
 
         public void ResetView()

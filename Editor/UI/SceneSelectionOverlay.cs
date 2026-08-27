@@ -41,9 +41,11 @@ namespace Dennokoworks.MeshModularizer
 
         public void Render(MmState state)
         {
+            // Selection は MmState.Clone() のたびに別インスタンスになるため、
+            // 参照比較では常に「変化あり」となり毎回シーンビューを再描画してしまう。内容で比べる。
             bool needRepaint = _state == null
                                || _state.Topology != state.Topology
-                               || _state.Selection != state.Selection
+                               || !_state.Selection.SetEquals(state.Selection)
                                || _state.PickMode != state.PickMode
                                || _state.SelectionMode != state.SelectionMode
                                || _state.Source != state.Source
