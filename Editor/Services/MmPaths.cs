@@ -11,7 +11,7 @@ namespace Dennokoworks.MeshModularizer
     /// </summary>
     public static class MmPaths
     {
-        public const string DefaultOutputFolder = "Assets/MeshModularizer_Output";
+        public const string DefaultOutputFolder = "Assets/MeshSplitter_Output";
         public const string MeshesSubFolder = "Meshes";
         public const string PrefabsSubFolder = "Prefabs";
 

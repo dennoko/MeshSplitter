@@ -9,11 +9,10 @@ namespace Dennokoworks.MeshModularizer
 {
     public sealed class MeshModularizerWindow : EditorWindow
     {
-        [MenuItem("Window/dennokoworks/Mesh Modularizer", false, 200)]
-        [MenuItem("Tools/dennokoworks/Mesh Modularizer", false, 200)]
+        [MenuItem("dennokoworks/Mesh Splitter", false, 200)]
         public static void Open()
         {
-            var window = GetWindow<MeshModularizerWindow>("Mesh Modularizer");
+            var window = GetWindow<MeshModularizerWindow>("Mesh Splitter");
             window.minSize = new Vector2(380, 560);
             window.Show();
         }
@@ -38,6 +37,7 @@ namespace Dennokoworks.MeshModularizer
 
         private Label _versionLabel;
         private Button _versionReloadBtn;
+        private Button _langButton;
         private DennokoVersionChecker.Result _versionResult =
             new DennokoVersionChecker.Result { State = DennokoVersionChecker.State.Checking, LocalVersion = "0.1.0" };
 
@@ -46,12 +46,21 @@ namespace Dennokoworks.MeshModularizer
         private void OnEnable()
         {
             _sceneOverlay = new SceneSelectionOverlay(Dispatch);
+            MmLocalization.OnLanguageChanged += HandleLanguageChanged;
         }
 
         private void OnDisable()
         {
+            MmLocalization.OnLanguageChanged -= HandleLanguageChanged;
             _sceneOverlay?.Dispose();
             _sceneOverlay = null;
+        }
+
+        private void HandleLanguageChanged()
+        {
+            _submeshChoiceCount = -1;
+            ApplyLocalization();
+            Render();
         }
 
         public void CreateGUI()
@@ -77,6 +86,7 @@ namespace Dennokoworks.MeshModularizer
 
             DennokoUIFont.Apply(rootVisualElement);
             BindUI();
+            ApplyLocalization();
             StartVersionCheck();
             Render();
         }
@@ -109,12 +119,17 @@ namespace Dennokoworks.MeshModularizer
             _versionReloadBtn = root.Q<Button>("version-reload-button");
             if (_versionReloadBtn != null)
             {
-                _versionReloadBtn.tooltip = "アップデートを再確認";
                 _versionReloadBtn.clicked += () =>
                 {
                     MeshModularizerVersion.ForceRecheck();
                     LoadVersionResultFromSessionState();
                 };
+            }
+
+            _langButton = root.Q<Button>("lang-button");
+            if (_langButton != null)
+            {
+                _langButton.clicked += () => MmLocalization.ToggleLanguage();
             }
 
             _sourceField = root.Q<ObjectField>("source-field");
@@ -296,7 +311,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (mesh == null)
             {
-                state.TopologyError = "Renderer にメッシュが割り当てられていません。";
+                state.TopologyError = MmLocalization.Tr("error_no_mesh");
                 return;
             }
 
@@ -311,7 +326,10 @@ namespace Dennokoworks.MeshModularizer
             var triangles = state.Topology.ResolveTriangles(state.PickMode, state.Selection);
             if (triangles.Count == 0)
             {
-                EditorUtility.DisplayDialog("エラー", "選択された三角形がありません。", "OK");
+                EditorUtility.DisplayDialog(
+                    MmLocalization.Tr("dialog_error_title"),
+                    MmLocalization.Tr("dialog_no_triangles"),
+                    "OK");
                 return;
             }
 
@@ -340,7 +358,10 @@ namespace Dennokoworks.MeshModularizer
             else
             {
                 state.LastError = res.Error;
-                EditorUtility.DisplayDialog("切り出し失敗", res.Error, "OK");
+                EditorUtility.DisplayDialog(
+                    MmLocalization.Tr("dialog_extract_failed"),
+                    res.Error,
+                    "OK");
             }
         }
 
@@ -386,8 +407,11 @@ namespace Dennokoworks.MeshModularizer
                 if (res.Ok) success++;
             }
 
-            state.LastMessage = $"{success}/{count} 個のサブメッシュを個別Prefabとして出力しました。";
-            EditorUtility.DisplayDialog("完了", state.LastMessage, "OK");
+            state.LastMessage = MmLocalization.Tr("submesh_batch_success_format", success, count);
+            EditorUtility.DisplayDialog(
+                MmLocalization.Tr("dialog_complete_title"),
+                state.LastMessage,
+                "OK");
         }
 
         private void Render()
@@ -404,7 +428,9 @@ namespace Dennokoworks.MeshModularizer
             SetButtonActive(_pickUvBtn, _state.PickMode == MmPickMode.UvIsland);
             SetButtonActive(_pickPolyBtn, _state.PickMode == MmPickMode.ConnectedPolygon);
 
-            _sceneSelectToggleBtn.text = _state.SceneSelectionEnabled ? "シーンでクリック選択: ON" : "シーンでクリック選択: OFF";
+            _sceneSelectToggleBtn.text = _state.SceneSelectionEnabled
+                ? MmLocalization.Tr("btn_scene_select_on")
+                : MmLocalization.Tr("btn_scene_select_off");
             SetButtonActive(_sceneSelectToggleBtn, _state.SceneSelectionEnabled);
             _sceneXrayToggle.SetValueWithoutNotify(_state.SceneOverlayXray);
 
@@ -441,7 +467,7 @@ namespace Dennokoworks.MeshModularizer
             int count = mesh != null ? mesh.subMeshCount : 0;
             if (count != _submeshChoiceCount || _submeshDropdown.choices == null || _submeshDropdown.choices.Count == 0)
             {
-                var choices = new List<string> { "すべて" };
+                var choices = new List<string> { MmLocalization.Tr("submesh_choice_all") };
                 var materials = _state.Source != null ? _state.Source.sharedMaterials : Array.Empty<Material>();
                 for (int i = 0; i < count; i++)
                 {
@@ -464,31 +490,35 @@ namespace Dennokoworks.MeshModularizer
 
         private string DescribeSource()
         {
-            if (_state.Source == null) return "対象の Renderer (SkinnedMeshRenderer / MeshRenderer) を指定してください。";
+            if (_state.Source == null) return MmLocalization.Tr("source_info_empty");
             if (_state.TopologyError != null) return _state.TopologyError;
-            if (_state.Topology == null) return "解析中...";
+            if (_state.Topology == null) return MmLocalization.Tr("source_info_analyzing");
 
             var t = _state.Topology;
-            return $"三角形 {t.Triangles.Length} / UVアイランド {t.UvIslandCount} / つながったポリゴン {t.PolyGroupCount}"
-                   + (t.HasUv ? "" : " (UV0 なし)");
+            return MmLocalization.Tr("source_info_format", t.Triangles.Length, t.UvIslandCount, t.PolyGroupCount)
+                   + (t.HasUv ? "" : MmLocalization.Tr("source_info_no_uv"));
         }
 
         private string DescribeSelection()
         {
-            if (_state.Topology == null) return "未解析";
-            if (_state.Selection.Count == 0) return "未選択";
+            if (_state.Topology == null) return MmLocalization.Tr("selection_info_unanalyzed");
+            if (_state.Selection.Count == 0) return MmLocalization.Tr("selection_info_unselected");
 
             int triangles = _state.Topology.CountTriangles(_state.PickMode, _state.Selection);
-            string unit = _state.PickMode == MmPickMode.UvIsland ? "アイランド" : "グループ";
-            return $"{_state.Selection.Count} {unit} / {triangles} 三角形を選択中";
+            string unit = _state.PickMode == MmPickMode.UvIsland ? MmLocalization.Tr("unit_island") : MmLocalization.Tr("unit_group");
+            return MmLocalization.Tr("selection_info_format", _state.Selection.Count, unit, triangles);
         }
 
         private static string DescribeResult(ModularizeResult result)
         {
-            string text = $"パーツを出力しました: {result.PrefabPath}\n"
-                          + $"△{result.TriangleCount} / 頂点{result.VertexCount} / 複製範囲 {result.ScopeRootName}\n"
-                          + $"除去: オブジェクト {result.RemovedObjectCount} / コンポーネント {result.RemovedComponentCount}"
-                          + $" (うち不要な PhysBone {result.PurgedPhysBoneCount})";
+            string text = MmLocalization.Tr("extract_success_format",
+                result.PrefabPath,
+                result.TriangleCount,
+                result.VertexCount,
+                result.ScopeRootName,
+                result.RemovedObjectCount,
+                result.RemovedComponentCount,
+                result.PurgedPhysBoneCount);
 
             foreach (var note in result.Notes) text += "\n" + note;
             return text;
@@ -499,6 +529,66 @@ namespace Dennokoworks.MeshModularizer
             if (btn == null) return;
             if (active) btn.AddToClassList("dennoko-button-active");
             else btn.RemoveFromClassList("dennoko-button-active");
+        }
+
+        private void ApplyLocalization()
+        {
+            var root = rootVisualElement;
+            if (root == null) return;
+
+            if (_langButton != null)
+            {
+                _langButton.text = MmLocalization.Tr("lang_button_text");
+                _langButton.tooltip = MmLocalization.Tr("lang_button_tooltip");
+            }
+
+            var titleLabel = root.Q<Label>("title-label");
+            if (titleLabel != null) titleLabel.text = MmLocalization.Tr("header_title");
+
+            if (_versionReloadBtn != null) _versionReloadBtn.tooltip = MmLocalization.Tr("ver_reload_tooltip");
+
+            var hTarget = root.Q<TextElement>("header-target-mesh");
+            if (hTarget != null) hTarget.text = MmLocalization.Tr("section_target_mesh");
+
+            var srcFromSel = root.Q<Button>("source-from-selection");
+            if (srcFromSel != null)
+            {
+                srcFromSel.text = MmLocalization.Tr("btn_pick_source");
+                srcFromSel.tooltip = MmLocalization.Tr("tooltip_pick_source");
+            }
+
+            var srcReload = root.Q<Button>("source-reload-button");
+            if (srcReload != null) srcReload.tooltip = MmLocalization.Tr("tooltip_reload_source");
+
+            if (_submeshDropdown != null) _submeshDropdown.label = MmLocalization.Tr("label_submesh");
+
+            var hSelection = root.Q<TextElement>("header-selection");
+            if (hSelection != null) hSelection.text = MmLocalization.Tr("section_selection");
+
+            if (_pickUvBtn != null) _pickUvBtn.text = MmLocalization.Tr("btn_pick_uv");
+            if (_pickPolyBtn != null) _pickPolyBtn.text = MmLocalization.Tr("btn_pick_poly");
+
+            var btnSelAll = root.Q<Button>("select-all");
+            if (btnSelAll != null) btnSelAll.text = MmLocalization.Tr("btn_select_all");
+
+            var btnSelNone = root.Q<Button>("select-none");
+            if (btnSelNone != null) btnSelNone.text = MmLocalization.Tr("btn_select_none");
+
+            var btnSelInv = root.Q<Button>("select-invert");
+            if (btnSelInv != null) btnSelInv.text = MmLocalization.Tr("btn_select_invert");
+
+            if (_sceneXrayToggle != null) _sceneXrayToggle.label = MmLocalization.Tr("toggle_scene_xray");
+
+            var hPrefab = root.Q<TextElement>("header-prefab-output");
+            if (hPrefab != null) hPrefab.text = MmLocalization.Tr("section_prefab_output");
+
+            if (_partNameField != null) _partNameField.label = MmLocalization.Tr("label_part_name");
+            if (_outputFolderField != null) _outputFolderField.label = MmLocalization.Tr("label_output_folder");
+
+            if (_extractBtn != null) _extractBtn.text = MmLocalization.Tr("btn_extract_part");
+            if (_extractSubmeshBtn != null) _extractSubmeshBtn.text = MmLocalization.Tr("btn_extract_submesh");
+
+            ApplyVersionLabel();
         }
 
         private void StartVersionCheck()
@@ -546,15 +636,15 @@ namespace Dennokoworks.MeshModularizer
             switch (r.State)
             {
                 case DennokoVersionChecker.State.UpdateAvailable:
-                    text = $"{baseText}  更新あり ({r.LatestVersion})";
+                    text = $"{baseText}  {MmLocalization.Tr("ver_update", r.LatestVersion)}";
                     update = true;
                     break;
                 case DennokoVersionChecker.State.Error:
-                    text = $"{baseText}  最新版を取得できません";
+                    text = $"{baseText}  {MmLocalization.Tr("ver_error")}";
                     error = true;
                     break;
                 case DennokoVersionChecker.State.Checking:
-                    text = $"{baseText}  確認中...";
+                    text = $"{baseText}  {MmLocalization.Tr("ver_checking")}";
                     break;
                 default: // UpToDate
                     text = baseText;

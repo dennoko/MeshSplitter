@@ -63,4 +63,19 @@
     color: var(--dennoko-text-primary);
 }
 
+.dennoko-root .unity-button.dennoko-lang-button {
+    min-width: 32px;
+    height: 20px;
+    padding: 1px 6px;
+    margin: 0;
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--dennoko-text-tertiary);
+    border-color: var(--dennoko-outline);
+}
+
+.dennoko-root .unity-button.dennoko-lang-button:hover {
+    color: var(--dennoko-text-primary);
+}
+
 

@@ -289,7 +289,7 @@ namespace Dennokoworks.MeshModularizer
                 }
 
                 Debug.LogWarning(
-                    "[Mesh Modularizer] Constraint の依存解決が上限に達しました。参照が循環している可能性があります。");
+                    "[Mesh Splitter] Constraint の依存解決が上限に達しました。参照が循環している可能性があります。");
             }
 
             /// <summary>

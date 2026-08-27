@@ -37,25 +37,25 @@ namespace Dennokoworks.MeshModularizer
 
         // チェック先（設定されているリモートリポジトリに合わせる）
         internal const string RepoOwner       = "dennoko";
-        internal const string RepoName        = "MeshModularizer";
+        internal const string RepoName        = "MeshSplitter";
         internal const string RepoBranch      = "master";
         internal const string VersionFilePath = "version.json";
 
         // セッションキー。State（比較結果）は保存しない — ローカル版が後から正しく解決され得るため、
         // 表示のたびに「保存した最新版 vs 現在のローカル版」で更新有無を再計算する。
         // ここでは取得が成功したか（Error だったか）だけ保存する。
-        internal const string VerCheckDoneKey   = "MeshModularizer_VerCheck_Done";
-        internal const string VerCheckErrorKey  = "MeshModularizer_VerCheck_Error";
-        internal const string VerCheckLatestKey = "MeshModularizer_VerCheck_Latest";
-        internal const string VerCheckUrlKey    = "MeshModularizer_VerCheck_Url";
-        internal const string VerCheckMessageKey = "MeshModularizer_VerCheck_Message";
+        internal const string VerCheckDoneKey   = "MeshSplitter_VerCheck_Done";
+        internal const string VerCheckErrorKey  = "MeshSplitter_VerCheck_Error";
+        internal const string VerCheckLatestKey = "MeshSplitter_VerCheck_Latest";
+        internal const string VerCheckUrlKey    = "MeshSplitter_VerCheck_Url";
+        internal const string VerCheckMessageKey = "MeshSplitter_VerCheck_Message";
 
         // 以下はエディタ再起動をまたいで保持する必要があるため EditorPrefs に置く。
         // SessionState だと再起動のたびにリセットされ、レート制限中でも撃ち続けてしまう。
-        internal const string VerCheckLastAttemptKey  = "MeshModularizer_VerCheck_LastAttemptUtc";
-        internal const string VerCheckCachedLatestKey = "MeshModularizer_VerCheck_CachedLatest";
-        internal const string VerCheckCachedUrlKey    = "MeshModularizer_VerCheck_CachedUrl";
-        internal const string VerCheckCachedMessageKey = "MeshModularizer_VerCheck_CachedMessage";
+        internal const string VerCheckLastAttemptKey  = "MeshSplitter_VerCheck_LastAttemptUtc";
+        internal const string VerCheckCachedLatestKey = "MeshSplitter_VerCheck_CachedLatest";
+        internal const string VerCheckCachedUrlKey    = "MeshSplitter_VerCheck_CachedUrl";
+        internal const string VerCheckCachedMessageKey = "MeshSplitter_VerCheck_CachedMessage";
 
         // 前回リクエストからこの時間が経つまで自動チェックを行わない。ドメインリロード
         // （スクリプト保存・Play mode 出入りごとに走る）で無制限に再試行すると、GitHub 側の
