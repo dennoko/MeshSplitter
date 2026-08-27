@@ -35,7 +35,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (sourceRenderer == null)
             {
-                error = "切り出し元の Renderer が指定されていません。";
+                error = MmLocalization.Tr("err_no_source_renderer");
                 return null;
             }
 
@@ -45,17 +45,17 @@ namespace Dennokoworks.MeshModularizer
 
             if (mesh == null)
             {
-                error = "切り出し元のメッシュが見つかりません。";
+                error = MmLocalization.Tr("err_source_mesh_not_found");
                 return null;
             }
             if (!mesh.isReadable)
             {
-                error = $"メッシュ '{mesh.name}' が Read/Write 無効です。";
+                error = MmLocalization.Tr("err_mesh_not_readable", mesh.name);
                 return null;
             }
             if (triangleIndices == null || triangleIndices.Count == 0)
             {
-                error = "三角形が 1 つも選択されていません。";
+                error = MmLocalization.Tr("err_no_selection");
                 return null;
             }
 
@@ -75,7 +75,7 @@ namespace Dennokoworks.MeshModularizer
             }
             if (keptTriangles == 0)
             {
-                error = "選択された三角形がメッシュ内に見つかりません。";
+                error = MmLocalization.Tr("err_selection_not_in_mesh");
                 return null;
             }
 

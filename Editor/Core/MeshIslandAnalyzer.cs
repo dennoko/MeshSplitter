@@ -18,12 +18,12 @@ namespace Dennokoworks.MeshModularizer
 
             if (mesh == null)
             {
-                error = "メッシュが見つかりません。";
+                error = MmLocalization.Tr("err_mesh_not_found");
                 return null;
             }
             if (!mesh.isReadable)
             {
-                error = $"メッシュ '{mesh.name}' が Read/Write 無効です。モデルのインポート設定で Read/Write Enabled を有効にしてください。";
+                error = MmLocalization.Tr("err_mesh_not_readable", mesh.name);
                 return null;
             }
 
@@ -56,7 +56,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (tris.Count == 0)
             {
-                error = "対象サブメッシュに三角形がありません。";
+                error = MmLocalization.Tr("err_no_triangles_in_submesh");
                 return null;
             }
 

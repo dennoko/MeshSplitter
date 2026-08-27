@@ -46,7 +46,27 @@
     "dialog_extract_failed": "切り出し失敗",
     "dialog_complete_title": "完了",
     "extract_success_format": "パーツを出力しました: {0}\n△{1} / 頂点{2} / 複製範囲 {3}\n除去: オブジェクト {4} / コンポーネント {5} (うち不要な PhysBone {6})",
-    "submesh_batch_success_format": "{0}/{1} 個のサブメッシュを個別Prefabとして出力しました。"
+    "submesh_batch_success_format": "{0}/{1} 個のサブメッシュを個別Prefabとして出力しました。",
+
+    "err_mesh_not_found": "メッシュが見つかりません。",
+    "err_mesh_not_readable": "メッシュ '{0}' が Read/Write 無効です。モデルのインポート設定で Read/Write Enabled を有効にしてください。",
+    "err_no_triangles_in_submesh": "対象サブメッシュに三角形がありません。",
+    "err_no_source_renderer": "切り出し元の Renderer が指定されていません。",
+    "err_source_mesh_not_found": "切り出し元のメッシュが見つかりません。",
+    "err_no_selection": "三角形が 1 つも選択されていません。",
+    "err_selection_not_in_mesh": "選択された三角形がメッシュ内に見つかりません。",
+    "err_not_scene_object": "シーン上に配置されたオブジェクトを指定してください (Prefab アセットは直接処理できません)。",
+    "err_bone_outside_hierarchy": "ボーン '{0}' が切り出し元と同じ階層にありません。",
+    "err_request_null": "リクエストが null です。",
+    "err_renderer_not_mapped": "複製後の Renderer を特定できませんでした。",
+    "err_prefab_save_failed": "Prefab の保存に失敗しました: {0}",
+    "err_unknown": "不明なエラーが発生しました。",
+    "note_scope_not_prefab": "'{0}' は Prefab インスタンスではないため、'{1}' 以下を複製範囲としました。",
+    "note_scope_expanded": "ボーンが Prefab '{0}' の外にあるため、複製範囲を '{1}' まで広げました。",
+    "note_probe_anchor_external": "Probe Anchor が複製範囲の外を指しているため、Prefab では参照が外れます。",
+    "note_missing_scripts": "Missing Script を {0} 件除去しました。",
+    "note_external_references": "複製範囲の外を指す参照が {0} 件あります (Prefab では外れます)。",
+    "scope_describe_format": "複製範囲: {0}"
   },
   "en": {
     "header_title": "Mesh Splitter",
@@ -95,6 +115,26 @@
     "dialog_extract_failed": "Extraction Failed",
     "dialog_complete_title": "Complete",
     "extract_success_format": "Exported part: {0}\n△{1} / {2} Vertices / Scope {3}\nRemoved: {4} Objects / {5} Components ({6} unnecessary PhysBones)",
-    "submesh_batch_success_format": "Exported {0}/{1} submeshes as individual prefabs."
+    "submesh_batch_success_format": "Exported {0}/{1} submeshes as individual prefabs.",
+
+    "err_mesh_not_found": "Mesh not found.",
+    "err_mesh_not_readable": "Mesh '{0}' is not readable. Enable Read/Write Enabled in the model's import settings.",
+    "err_no_triangles_in_submesh": "The target submesh contains no triangles.",
+    "err_no_source_renderer": "No source Renderer is assigned.",
+    "err_source_mesh_not_found": "The source mesh was not found.",
+    "err_no_selection": "No triangles are selected.",
+    "err_selection_not_in_mesh": "The selected triangles were not found in the mesh.",
+    "err_not_scene_object": "Please specify an object placed in the scene (Prefab assets cannot be processed directly).",
+    "err_bone_outside_hierarchy": "Bone '{0}' is not in the same hierarchy as the source mesh.",
+    "err_request_null": "The request is null.",
+    "err_renderer_not_mapped": "Could not locate the Renderer in the duplicated hierarchy.",
+    "err_prefab_save_failed": "Failed to save the Prefab: {0}",
+    "err_unknown": "An unknown error occurred.",
+    "note_scope_not_prefab": "'{0}' is not a Prefab instance, so '{1}' and its children were used as the duplication scope.",
+    "note_scope_expanded": "Bones are outside the Prefab '{0}', so the duplication scope was widened to '{1}'.",
+    "note_probe_anchor_external": "The Probe Anchor points outside the duplication scope, so the reference will be lost in the Prefab.",
+    "note_missing_scripts": "Removed {0} missing script(s).",
+    "note_external_references": "{0} reference(s) point outside the duplication scope and will be lost in the Prefab.",
+    "scope_describe_format": "Duplication scope: {0}"
   }
 }

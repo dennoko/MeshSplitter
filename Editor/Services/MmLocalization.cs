@@ -67,6 +67,27 @@ namespace Dennokoworks.MeshModularizer
             public string btn_extract_part;
             public string btn_extract_submesh;
 
+            // Core / Services が返すエラー・注記 (ダイアログとステータス欄に表示される)
+            public string err_mesh_not_found;
+            public string err_mesh_not_readable;
+            public string err_no_triangles_in_submesh;
+            public string err_no_source_renderer;
+            public string err_source_mesh_not_found;
+            public string err_no_selection;
+            public string err_selection_not_in_mesh;
+            public string err_not_scene_object;
+            public string err_bone_outside_hierarchy;
+            public string err_request_null;
+            public string err_renderer_not_mapped;
+            public string err_prefab_save_failed;
+            public string err_unknown;
+            public string note_scope_not_prefab;
+            public string note_scope_expanded;
+            public string note_probe_anchor_external;
+            public string note_missing_scripts;
+            public string note_external_references;
+            public string scope_describe_format;
+
             public string dialog_error_title;
             public string dialog_no_triangles;
             public string dialog_extract_failed;

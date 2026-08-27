@@ -25,14 +25,14 @@ namespace Dennokoworks.MeshModularizer
 
             if (renderer == null)
             {
-                error = "切り出し元の Renderer が指定されていません。";
+                error = MmLocalization.Tr("err_no_source_renderer");
                 return null;
             }
 
             var go = renderer.gameObject;
             if (!go.scene.IsValid())
             {
-                error = "シーン上に配置されたオブジェクトを指定してください (Prefab アセットは直接処理できません)。";
+                error = MmLocalization.Tr("err_not_scene_object");
                 return null;
             }
 
@@ -53,7 +53,7 @@ namespace Dennokoworks.MeshModularizer
                     var common = CommonAncestor(scope, transform);
                     if (common == null)
                     {
-                        error = $"ボーン '{transform.name}' が切り出し元と同じ階層にありません。";
+                        error = MmLocalization.Tr("err_bone_outside_hierarchy", transform.name);
                         return null;
                     }
                     scope = common;
@@ -62,11 +62,11 @@ namespace Dennokoworks.MeshModularizer
 
             if (prefabRoot == null)
             {
-                note = $"'{go.name}' は Prefab インスタンスではないため、'{scope.name}' 以下を複製範囲としました。";
+                note = MmLocalization.Tr("note_scope_not_prefab", go.name, scope.name);
             }
             else if (scope != prefabRoot)
             {
-                note = $"ボーンが Prefab '{prefabRoot.name}' の外にあるため、複製範囲を '{scope.name}' まで広げました。";
+                note = MmLocalization.Tr("note_scope_expanded", prefabRoot.name, scope.name);
             }
 
             return scope;
@@ -110,7 +110,7 @@ namespace Dennokoworks.MeshModularizer
             var scope = Resolve(renderer, required, out string note, out string error);
             if (scope == null) return error;
 
-            string text = $"複製範囲: {scope.name}";
+            string text = MmLocalization.Tr("scope_describe_format", scope.name);
             return note != null ? text + "\n" + note : text;
         }
 

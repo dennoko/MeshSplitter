@@ -60,8 +60,8 @@ namespace Dennokoworks.MeshModularizer
     {
         public static ModularizeResult Execute(ModularizeRequest request)
         {
-            if (request == null) return Fail("リクエストが null です。");
-            if (request.SourceRenderer == null) return Fail("切り出し元の Renderer が指定されていません。");
+            if (request == null) return Fail(MmLocalization.Tr("err_request_null"));
+            if (request.SourceRenderer == null) return Fail(MmLocalization.Tr("err_no_source_renderer"));
 
             string partName = MmPaths.SanitizeFileName(request.PartName, "Part");
             string outputFolder = string.IsNullOrEmpty(request.OutputFolder)
@@ -99,14 +99,14 @@ namespace Dennokoworks.MeshModularizer
                 copy.name = partName;
 
                 var targetRenderer = MapComponent(request.SourceRenderer, map);
-                if (targetRenderer == null) return Fail("複製後の Renderer を特定できませんでした。");
+                if (targetRenderer == null) return Fail(MmLocalization.Tr("err_renderer_not_mapped"));
 
                 // 4. 切り出したメッシュを差し込む
                 var targetFilter = ApplySplitMesh(targetRenderer, split, map, request);
 
                 if (targetRenderer.probeAnchor != null && !targetRenderer.probeAnchor.IsChildOf(copy.transform))
                 {
-                    notes.Add("Probe Anchor が複製範囲の外を指しているため、Prefab では参照が外れます。");
+                    notes.Add(MmLocalization.Tr("note_probe_anchor_external"));
                 }
 
                 // 5. 残すオブジェクト / コンポーネントの決定
@@ -129,10 +129,10 @@ namespace Dennokoworks.MeshModularizer
                 int removedObjects = KeepSetSolver.DeleteUnkeptObjects(copy, keep.Objects);
                 int removedComponents = KeepSetSolver.RemoveUnkeptComponents(copy, keep.Components);
                 int missingScripts = KeepSetSolver.RemoveMissingScripts(copy);
-                if (missingScripts > 0) notes.Add($"Missing Script を {missingScripts} 件除去しました。");
+                if (missingScripts > 0) notes.Add(MmLocalization.Tr("note_missing_scripts", missingScripts));
                 if (keep.ExternalReferenceCount > 0)
                 {
-                    notes.Add($"複製範囲の外を指す参照が {keep.ExternalReferenceCount} 件あります (Prefab では外れます)。");
+                    notes.Add(MmLocalization.Tr("note_external_references", keep.ExternalReferenceCount));
                 }
 
                 // 7. メッシュアセットの保存
@@ -148,7 +148,7 @@ namespace Dennokoworks.MeshModularizer
                 {
                     // 孤立したメッシュアセットを残さない。
                     AssetDatabase.DeleteAsset(meshPath);
-                    return Fail($"Prefab の保存に失敗しました: {prefabPath}");
+                    return Fail(MmLocalization.Tr("err_prefab_save_failed", prefabPath));
                 }
 
                 AssetDatabase.SaveAssets();
@@ -292,7 +292,7 @@ namespace Dennokoworks.MeshModularizer
 
         private static ModularizeResult Fail(string error)
         {
-            return new ModularizeResult { Error = error ?? "不明なエラーが発生しました。" };
+            return new ModularizeResult { Error = error ?? MmLocalization.Tr("err_unknown") };
         }
     }
 }
