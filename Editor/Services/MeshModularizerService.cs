@@ -215,7 +215,7 @@ namespace Dennokoworks.MeshModularizer
                 if (request.RecalculateBounds)
                 {
                     skinned.localBounds = BoundsCalculator.CalculateSkinnedLocalBounds(
-                        split.Mesh, skinned.bones, skinned.rootBone);
+                        split.Mesh, skinned.bones, skinned.rootBone, skinned.transform);
                 }
                 return null;
             }

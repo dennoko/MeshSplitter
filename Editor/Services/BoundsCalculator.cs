@@ -8,8 +8,13 @@ namespace Dennokoworks.MeshModularizer
     /// </summary>
     public static class BoundsCalculator
     {
+        /// <param name="rendererTransform">
+        /// スキニング情報が無いメッシュを扱うために必要。頂点はメッシュローカル空間なので、
+        /// rootBone ローカルへ移すには Renderer の localToWorld を挟まなければならない。
+        /// </param>
         public static Bounds CalculateSkinnedLocalBounds(
-            Mesh mesh, Transform[] bones, Transform rootBone, float padding = 0.05f)
+            Mesh mesh, Transform[] bones, Transform rootBone, Transform rendererTransform,
+            float padding = 0.05f)
         {
             if (mesh == null) return new Bounds(Vector3.zero, Vector3.one);
             if (rootBone == null) return mesh.bounds;
@@ -30,6 +35,13 @@ namespace Dennokoworks.MeshModularizer
             Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
             Matrix4x4 rootWorldToLocal = rootBone.worldToLocalMatrix;
+
+            // スキニングされていない頂点用: メッシュローカル → ワールド → rootBone ローカル。
+            // Renderer の localToWorld を挟まずに rootWorldToLocal を直接掛けると空間が混ざり、
+            // rootBone が原点から離れているほど localBounds が大きくずれる。
+            Matrix4x4 meshToRoot = rendererTransform != null
+                ? rootWorldToLocal * rendererTransform.localToWorldMatrix
+                : rootWorldToLocal;
 
             if (hasSkinning)
             {
@@ -73,7 +85,7 @@ namespace Dennokoworks.MeshModularizer
                     }
                     else
                     {
-                        skinnedPos = rootWorldToLocal.MultiplyPoint3x4(vPos);
+                        skinnedPos = meshToRoot.MultiplyPoint3x4(vPos);
                     }
 
                     min = Vector3.Min(min, skinnedPos);
@@ -131,7 +143,7 @@ namespace Dennokoworks.MeshModularizer
                                 }
                                 else
                                 {
-                                    skinnedPos = rootWorldToLocal.MultiplyPoint3x4(vPos);
+                                    skinnedPos = meshToRoot.MultiplyPoint3x4(vPos);
                                 }
 
                                 min = Vector3.Min(min, skinnedPos);
@@ -147,7 +159,7 @@ namespace Dennokoworks.MeshModularizer
             {
                 for (int v = 0; v < vertices.Length; v++)
                 {
-                    Vector3 pt = rootWorldToLocal.MultiplyPoint3x4(vertices[v]);
+                    Vector3 pt = meshToRoot.MultiplyPoint3x4(vertices[v]);
                     min = Vector3.Min(min, pt);
                     max = Vector3.Max(max, pt);
                 }
