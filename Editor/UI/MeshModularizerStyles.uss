@@ -43,3 +43,17 @@
     background-color: rgba(100, 181, 246, 0.15);
 }
 
+.dennoko-root .dennoko-version-reload-button {
+    width: 18px;
+    height: 18px;
+    margin-left: 4px;
+    padding: 0;
+    font-size: 12px;
+    color: var(--dennoko-text-tertiary);
+}
+
+.dennoko-root .dennoko-version-reload-button:hover {
+    color: var(--dennoko-text-primary);
+}
+
+

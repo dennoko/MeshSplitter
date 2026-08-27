@@ -1,5 +1,15 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-    <ui:ScrollView class="dennoko-scrollview mm-grow">
+    <!-- トップバー（ヘッダー） -->
+    <ui:VisualElement name="header" class="dennoko-header">
+        <ui:VisualElement class="dennoko-header-titlegroup">
+            <ui:Label name="title-label" text="Mesh Modularizer" class="dennoko-title" />
+            <ui:Label name="version-label" text="" class="dennoko-version-label" />
+            <ui:Button name="version-reload-button" text="↻" class="dennoko-version-reload-button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement class="dennoko-separator" />
+
+    <ui:ScrollView class="dennoko-scroll mm-grow">
         <!-- 1. 切り出し元メッシュ -->
         <ui:VisualElement class="dennoko-card">
             <ui:TextElement text="切り出し元メッシュ" class="dennoko-heading-2" />

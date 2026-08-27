@@ -36,6 +36,11 @@ namespace Dennokoworks.MeshModularizer
         private Button _extractSubmeshBtn;
         private Label _extractStatusLabel;
 
+        private Label _versionLabel;
+        private Button _versionReloadBtn;
+        private DennokoVersionChecker.Result _versionResult =
+            new DennokoVersionChecker.Result { State = DennokoVersionChecker.State.Checking, LocalVersion = "0.1.0" };
+
         private int _submeshChoiceCount = -1;
 
         private void OnEnable()
@@ -72,6 +77,7 @@ namespace Dennokoworks.MeshModularizer
 
             DennokoUIFont.Apply(rootVisualElement);
             BindUI();
+            StartVersionCheck();
             Render();
         }
 
@@ -98,6 +104,18 @@ namespace Dennokoworks.MeshModularizer
         private void BindUI()
         {
             var root = rootVisualElement;
+
+            _versionLabel = root.Q<Label>("version-label");
+            _versionReloadBtn = root.Q<Button>("version-reload-button");
+            if (_versionReloadBtn != null)
+            {
+                _versionReloadBtn.tooltip = "アップデートを再確認";
+                _versionReloadBtn.clicked += () =>
+                {
+                    MeshModularizerVersion.ForceRecheck();
+                    LoadVersionResultFromSessionState();
+                };
+            }
 
             _sourceField = root.Q<ObjectField>("source-field");
             _sourceField.objectType = typeof(Renderer);
@@ -470,6 +488,70 @@ namespace Dennokoworks.MeshModularizer
             if (btn == null) return;
             if (active) btn.AddToClassList("dennoko-button-active");
             else btn.RemoveFromClassList("dennoko-button-active");
+        }
+
+        private void StartVersionCheck()
+        {
+            LoadVersionResultFromSessionState();
+            MeshModularizerVersion.StartCheckBackgroundTask();
+        }
+
+        internal void LoadVersionResultFromSessionState()
+        {
+            string local  = MeshModularizerVersion.Current;
+            string latest = SessionState.GetString(MeshModularizerVersion.VerCheckLatestKey, string.Empty);
+            bool   done   = SessionState.GetBool(MeshModularizerVersion.VerCheckDoneKey, false);
+            bool   error  = SessionState.GetBool(MeshModularizerVersion.VerCheckErrorKey, false);
+
+            DennokoVersionChecker.State state;
+            if (!done)
+                state = DennokoVersionChecker.State.Checking;
+            else if (error || string.IsNullOrEmpty(latest))
+                state = DennokoVersionChecker.State.Error;
+            else if (DennokoVersionChecker.IsUpdateAvailable(latest, local))
+                state = DennokoVersionChecker.State.UpdateAvailable;
+            else
+                state = DennokoVersionChecker.State.UpToDate;
+
+            _versionResult = new DennokoVersionChecker.Result
+            {
+                State = state,
+                LocalVersion = local,
+                LatestVersion = latest,
+                Url = SessionState.GetString(MeshModularizerVersion.VerCheckUrlKey, string.Empty),
+                Message = SessionState.GetString(MeshModularizerVersion.VerCheckMessageKey, string.Empty)
+            };
+            ApplyVersionLabel();
+        }
+
+        private void ApplyVersionLabel()
+        {
+            if (_versionLabel == null) return;
+
+            var r = _versionResult;
+            string baseText = "v" + r.LocalVersion;
+            string text;
+            bool update = false, error = false;
+            switch (r.State)
+            {
+                case DennokoVersionChecker.State.UpdateAvailable:
+                    text = $"{baseText}  更新あり ({r.LatestVersion})";
+                    update = true;
+                    break;
+                case DennokoVersionChecker.State.Error:
+                    text = $"{baseText}  最新版を取得できません";
+                    error = true;
+                    break;
+                case DennokoVersionChecker.State.Checking:
+                    text = $"{baseText}  確認中...";
+                    break;
+                default: // UpToDate
+                    text = baseText;
+                    break;
+            }
+            _versionLabel.text = text;
+            _versionLabel.EnableInClassList("dennoko-version-label--update", update);
+            _versionLabel.EnableInClassList("dennoko-version-label--error", error);
         }
     }
 }
