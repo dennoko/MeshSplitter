@@ -18,6 +18,15 @@ namespace Dennokoworks.MeshModularizer
         }
 
         private MmState _state = new MmState();
+
+        // ドメインリロード (スクリプト再コンパイル / Play モードの出入り) をまたいで
+        // 対象メッシュだけを保持する。EditorWindow は ScriptableObject なので、
+        // [SerializeField] を付けたフィールドだけがリロード後も残る。
+        //
+        // MmState 全体は保持しない: MeshTopology も Selection (HashSet) も
+        // シリアライズできず、中途半端に欠けた状態を復元することになるため。
+        // ポリゴンの選択はリセットし、トポロジは復元時に解析し直す。
+        [SerializeField] private Renderer _persistedSource;
         private SceneSelectionOverlay _sceneOverlay;
         private UvPreviewElement _uvPreview;
 
@@ -93,6 +102,7 @@ namespace Dennokoworks.MeshModularizer
             BindUI();
             ApplyLocalization();
             StartVersionCheck();
+            RestorePersistedSource();
             Render();
         }
 
@@ -293,7 +303,21 @@ namespace Dennokoworks.MeshModularizer
             }
 
             _state = next;
+            _persistedSource = _state.Source;
             Render();
+        }
+
+        /// <summary>
+        /// ドメインリロード前に選んでいた対象メッシュを復元する。
+        /// トポロジはシリアライズできないので、ここで解析し直す。
+        /// </summary>
+        private void RestorePersistedSource()
+        {
+            // 破棄済みのオブジェクトは Unity の null 判定で弾かれる
+            if (_persistedSource == null || _state.Source != null) return;
+
+            _state.Source = _persistedSource;
+            AnalyzeMesh(_state);
         }
 
         private void AnalyzeMesh(MmState state)
