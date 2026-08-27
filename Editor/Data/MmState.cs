@@ -14,11 +14,11 @@ namespace Dennokoworks.MeshModularizer
         public MeshTopology Topology;
         public string TopologyError;
 
-        public MmPickMode PickMode = MmPickMode.UvIsland;
+        public MmPickMode PickMode = MmPickMode.ConnectedPolygon;
         public MmSelectionMode SelectionMode = MmSelectionMode.Add;
         public HashSet<int> Selection = new HashSet<int>();
 
-        public string PartName = "MeshPart";
+        public string PartName = "MS_Part_part";
         public string OutputFolder = MmPaths.DefaultOutputFolder;
 
         // コンポーネント・メッシュの内部設定 (スマート維持)
@@ -34,7 +34,7 @@ namespace Dennokoworks.MeshModularizer
         // シーン連携
         public bool SceneSelectionEnabled = true;
         public bool SceneOverlayEnabled = true;
-        public bool SceneOverlayXray = true;
+        public bool SceneOverlayXray = false;
 
         public string LastError;
         public string LastMessage;

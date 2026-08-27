@@ -498,6 +498,9 @@ namespace Dennokoworks.MeshModularizer
                 return;
             }
 
+            string meshName = MmPaths.SanitizeFileName(mesh.name, "Mesh");
+            state.PartName = $"MS_{meshName}_part";
+
             state.SourceUvChannel = ClampUvChannel(state.SourceUvChannel, mesh);
             state.Topology = MeshIslandAnalyzer.Analyze(mesh, state.SourceSubmesh, state.SourceUvChannel, out string error);
             state.TopologyError = error;

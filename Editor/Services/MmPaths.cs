@@ -59,14 +59,14 @@ namespace Dennokoworks.MeshModularizer
             if (!extension.StartsWith(".")) extension = "." + extension;
 
             string path = $"{folder}/{sanitized}{extension}";
-            if (!File.Exists(path)) return path;
+            if (!File.Exists(path) && !AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path)) return path;
 
-            for (int i = 1; i < 10000; i++)
+            for (int i = 1; i < 100000; i++)
             {
-                path = $"{folder}/{sanitized}_{i}{extension}";
-                if (!File.Exists(path)) return path;
+                path = $"{folder}/{sanitized} {i}{extension}";
+                if (!File.Exists(path) && !AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path)) return path;
             }
-            return $"{folder}/{sanitized}_{Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
+            return $"{folder}/{sanitized} {Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
         }
     }
 }
