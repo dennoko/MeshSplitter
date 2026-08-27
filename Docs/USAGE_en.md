@@ -40,13 +40,18 @@ Section to configure the source mesh.
 - **From Selection**: Automatically assigns the Renderer currently selected in the Scene / Hierarchy.
 - **↻ (Reload)**: Re-analyzes mesh topology and submesh information.
 - **Select Submesh**: Limits selection to a specific submesh/material index.
+- **UV Channel (`UV0` / `UV1` ...)**: Chooses which UV channel is used to detect UV islands. Only the channels the mesh actually has are listed (`UV0` is fine in most cases).
 
 ### 3. Range Selection
 Section to choose which polygons to extract.
 - **UV Island**: Selects mesh portions grouped by UV islands.
 - **Connected Polygons**: Selects portions connected in 3D mesh space.
 - **Select All / Clear / Invert**: Batch operations on the current selection.
-- **UV Preview**: Inspect and marquee select on the 2D UV layout.
+- **UV Preview**: Inspect and marquee select on the 2D UV layout. The gray outline marks the 0-1 UV range.
+- **Main Texture Display**: When a **submesh is selected** and the **UV channel is `UV0`**, the main texture of that submesh's material is drawn behind the UV layout, so you can see which part of the texture your selection covers.
+  - Works with materials that read their main texture (`_MainTex`) from UV0, such as lilToon, Poiyomi and the Unity standard shaders. Tiling and offset are applied, but the texture is drawn only once rather than repeated.
+  - The texture is not shown when: the submesh is set to **All**, a channel of `UV1` or later is selected, or a Poiyomi material has its main texture UV set to anything other than `UV0`.
+  - UV animation settings such as scrolling and rotation are not reflected.
 - **Scene Click Selection (ON/OFF)**: Enables direct clicking and painting on the mesh in the 3D Scene view.
 - **Wireframe X-Ray**: Enables see-through wireframe rendering through the object for better visibility.
 

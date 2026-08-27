@@ -563,7 +563,9 @@ namespace Dennokoworks.MeshModularizer
             _extractStatusLabel.text = _state.LastError ?? _state.LastMessage ?? "";
             _extractStatusLabel.style.color = _state.LastError != null ? new StyleColor(new Color(1f, 0.4f, 0.4f)) : new StyleColor(new Color(0.7f, 0.7f, 0.7f));
 
-            _uvPreview.SetSource(_state.Topology, _state.PickMode, _state.Selection, _state.SelectionMode == MmSelectionMode.Add);
+            _uvPreview.SetSource(
+                _state.Topology, _state.PickMode, _state.Selection, _state.SelectionMode == MmSelectionMode.Add,
+                MainTextureResolver.Resolve(_state.Source, _state.SourceSubmesh, _state.SourceUvChannel));
             _sceneOverlay?.Render(_state);
         }
 
