@@ -236,7 +236,8 @@ namespace Dennokoworks.MeshModularizer
             _dragStart = evt.localPosition;
             _dragStartUv = ToUv(_dragStart);
 
-            if (evt.altKey || evt.button == 2)
+            // 右ドラッグ / 中ドラッグ / Alt + ドラッグでパンする (ドキュメント記載の操作)
+            if (evt.altKey || evt.button == 1 || evt.button == 2)
             {
                 _panning = true;
             }
