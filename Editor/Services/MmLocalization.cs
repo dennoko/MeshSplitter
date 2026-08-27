@@ -94,6 +94,7 @@ namespace Dennokoworks.MeshModularizer
             public string dialog_complete_title;
             public string extract_success_format;
             public string submesh_batch_success_format;
+            public string submesh_batch_progress_format;
         }
 
         [Serializable]

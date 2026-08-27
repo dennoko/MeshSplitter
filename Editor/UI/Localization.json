@@ -47,6 +47,7 @@
     "dialog_complete_title": "完了",
     "extract_success_format": "パーツを出力しました: {0}\n△{1} / 頂点{2} / 複製範囲 {3}\n除去: オブジェクト {4} / コンポーネント {5} (うち不要な PhysBone {6})",
     "submesh_batch_success_format": "{0}/{1} 個のサブメッシュを個別Prefabとして出力しました。",
+    "submesh_batch_progress_format": "サブメッシュ {0}/{1} を書き出し中...",
 
     "err_mesh_not_found": "メッシュが見つかりません。",
     "err_mesh_not_readable": "メッシュ '{0}' が Read/Write 無効です。モデルのインポート設定で Read/Write Enabled を有効にしてください。",
@@ -116,6 +117,7 @@
     "dialog_complete_title": "Complete",
     "extract_success_format": "Exported part: {0}\n△{1} / {2} Vertices / Scope {3}\nRemoved: {4} Objects / {5} Components ({6} unnecessary PhysBones)",
     "submesh_batch_success_format": "Exported {0}/{1} submeshes as individual prefabs.",
+    "submesh_batch_progress_format": "Exporting submesh {0}/{1}...",
 
     "err_mesh_not_found": "Mesh not found.",
     "err_mesh_not_readable": "Mesh '{0}' is not readable. Enable Read/Write Enabled in the model's import settings.",

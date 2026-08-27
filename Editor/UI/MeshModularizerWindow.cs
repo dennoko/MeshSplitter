@@ -374,41 +374,67 @@ namespace Dennokoworks.MeshModularizer
 
             int count = mesh.subMeshCount;
             int success = 0;
+            string firstError = null;
 
-            for (int sub = 0; sub < count; sub++)
+            try
             {
-                int indexStart = (int)mesh.GetIndexStart(sub);
-                int indexCount = (int)mesh.GetIndexCount(sub);
-                var triangles = new List<int>(indexCount / 3);
-                for (int i = 0; i < indexCount; i += 3)
+                for (int sub = 0; sub < count; sub++)
                 {
-                    triangles.Add((indexStart + i) / 3);
+                    // 1 件ごとに複製範囲 (多くの場合アバター階層全体) を複製して Prefab 化するため、
+                    // 進捗を出さないと Unity がフリーズしたように見える。
+                    bool canceled = EditorUtility.DisplayCancelableProgressBar(
+                        MmLocalization.Tr("btn_extract_submesh"),
+                        MmLocalization.Tr("submesh_batch_progress_format", sub + 1, count),
+                        (float)sub / count);
+                    if (canceled) break;
+
+                    int indexStart = (int)mesh.GetIndexStart(sub);
+                    int indexCount = (int)mesh.GetIndexCount(sub);
+                    var triangles = new List<int>(indexCount / 3);
+                    for (int i = 0; i < indexCount; i += 3)
+                    {
+                        triangles.Add((indexStart + i) / 3);
+                    }
+
+                    string name = $"{state.PartName}_Submesh{sub}";
+                    var req = new ModularizeRequest
+                    {
+                        SourceRenderer = state.Source,
+                        TriangleIndices = triangles,
+                        PartName = name,
+                        OutputFolder = state.OutputFolder,
+                        KeepConstraints = state.KeepConstraints,
+                        RecalculateBounds = state.RecalculateBounds,
+                        TrimUnusedBones = state.TrimUnusedBones,
+                        KeepBlendShapes = state.KeepBlendShapes,
+                        KeepPhysBones = state.KeepPhysBones,
+                        KeepPhysBoneColliders = state.KeepPhysBoneColliders,
+                        AutoInstantiate = state.AutoInstantiate
+                    };
+
+                    var res = MeshModularizerService.Execute(req);
+                    if (res.Ok) success++;
+                    else if (firstError == null) firstError = res.Error;
                 }
-
-                string name = $"{state.PartName}_Submesh{sub}";
-                var req = new ModularizeRequest
-                {
-                    SourceRenderer = state.Source,
-                    TriangleIndices = triangles,
-                    PartName = name,
-                    OutputFolder = state.OutputFolder,
-                    KeepConstraints = state.KeepConstraints,
-                    RecalculateBounds = state.RecalculateBounds,
-                    TrimUnusedBones = state.TrimUnusedBones,
-                    KeepBlendShapes = state.KeepBlendShapes,
-                    KeepPhysBones = state.KeepPhysBones,
-                    KeepPhysBoneColliders = state.KeepPhysBoneColliders,
-                    AutoInstantiate = state.AutoInstantiate
-                };
-
-                var res = MeshModularizerService.Execute(req);
-                if (res.Ok) success++;
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
 
             state.LastMessage = MmLocalization.Tr("submesh_batch_success_format", success, count);
+            // 前回の切り出し失敗が残っているとステータス欄が古いエラーを表示し続けるため、
+            // 1 件でも成功したらクリアし、全滅した場合だけ原因を残す。
+            state.LastError = success == 0 ? firstError : null;
+
+            // 失敗した理由を握り潰すと「0/5 出力しました」だけが出て原因が分からなくなる。
+            string detail = firstError != null
+                ? state.LastMessage + "\n" + firstError
+                : state.LastMessage;
+
             EditorUtility.DisplayDialog(
                 MmLocalization.Tr("dialog_complete_title"),
-                state.LastMessage,
+                detail,
                 "OK");
         }
 
