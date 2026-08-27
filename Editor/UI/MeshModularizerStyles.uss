@@ -84,4 +84,18 @@
     color: var(--dennoko-text-primary);
 }
 
+.dennoko-root .unity-button.mm-color-opt-button {
+    flex-shrink: 0;
+    font-size: 10px;
+    height: 18px;
+    padding: 0 6px;
+    margin: 0;
+    color: var(--dennoko-text-secondary);
+    border-color: var(--dennoko-outline);
+}
+
+.dennoko-root .unity-button.mm-color-opt-button:hover {
+    color: var(--dennoko-text-primary);
+}
+
 

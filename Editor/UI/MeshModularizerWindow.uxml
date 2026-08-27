@@ -11,53 +11,86 @@
     <ui:VisualElement class="dennoko-separator" />
 
     <ui:ScrollView class="dennoko-scroll mm-grow">
-        <!-- 1. 対象メッシュ -->
-        <ui:VisualElement class="dennoko-card">
-            <ui:TextElement name="header-target-mesh" text="対象メッシュ" class="dennoko-section-title dennoko-card-header" />
-            <ui:VisualElement class="mm-row">
-                <uie:ObjectField name="source-field" class="mm-grow" allow-scene-objects="true" />
-                <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" tooltip="選択中のメッシュをセットします" />
-                <ui:Button name="source-reload-button" text="↻" class="mm-icon" tooltip="対象メッシュを再読み込み" />
+        <!-- メイン画面コンテナ -->
+        <ui:VisualElement name="main-view">
+            <!-- 1. 対象メッシュ -->
+            <ui:VisualElement class="dennoko-card">
+                <ui:TextElement name="header-target-mesh" text="対象メッシュ" class="dennoko-section-title dennoko-card-header" />
+                <ui:VisualElement class="mm-row">
+                    <uie:ObjectField name="source-field" class="mm-grow" allow-scene-objects="true" />
+                    <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" tooltip="選択中のメッシュをセットします" />
+                    <ui:Button name="source-reload-button" text="↻" class="mm-icon" tooltip="対象メッシュを再読み込み" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row">
+                    <ui:DropdownField name="submesh-dropdown" label="サブメッシュを指定" class="mm-grow" />
+                    <ui:DropdownField name="uv-dropdown" class="mm-uv-dropdown" />
+                </ui:VisualElement>
+                <ui:Label name="source-info" class="mm-note" />
             </ui:VisualElement>
-            <ui:VisualElement class="mm-row">
-                <ui:DropdownField name="submesh-dropdown" label="サブメッシュを指定" class="mm-grow" />
-                <ui:DropdownField name="uv-dropdown" class="mm-uv-dropdown" />
+
+            <!-- 2. 範囲選択 -->
+            <ui:VisualElement class="dennoko-card">
+                <ui:TextElement name="header-selection" text="範囲選択" class="dennoko-section-title dennoko-card-header" />
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="pick-uv" text="UVアイランド" class="mm-fill" />
+                    <ui:Button name="pick-poly" text="つながったポリゴン" class="mm-fill" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row" style="margin-top: 4px;">
+                    <ui:Button name="select-all" text="全選択" class="mm-fill" />
+                    <ui:Button name="select-none" text="クリア" class="mm-fill" />
+                    <ui:Button name="select-invert" text="反転" class="mm-fill" />
+                </ui:VisualElement>
+
+                <!-- UV プレビューホスト -->
+                <ui:VisualElement name="uv-preview-host" class="mm-preview" />
+
+                <ui:VisualElement class="mm-row">
+                    <ui:Button name="scene-select-toggle" text="シーンでクリック選択: ON" class="mm-fill" />
+                    <ui:Toggle name="opt-scene-xray" label="ワイヤーフレーム透過" value="true" />
+                </ui:VisualElement>
+                <ui:VisualElement class="mm-row" style="justify-content: space-between; align-items: center; margin-top: 2px;">
+                    <ui:Label name="selection-info" class="mm-note mm-grow" style="margin: 0;" />
+                    <ui:Button name="color-options-button" text="カラーオプション" class="mm-color-opt-button" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Label name="source-info" class="mm-note" />
+
+            <!-- 3. 出力設定 -->
+            <ui:VisualElement class="dennoko-card">
+                <ui:TextElement name="header-prefab-output" text="Prefab化" class="dennoko-section-title dennoko-card-header" />
+                <ui:TextField name="part-name" label="Prefab名" value="MeshPart" />
+                <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MeshSplitter_Output" />
+
+                <ui:Button name="extract-button" text="選択範囲をパーツPrefabとして書き出し" class="dennoko-button-primary" style="margin-top: 8px; height: 32px;" />
+                <ui:Button name="extract-submesh-button" text="全サブメッシュを個別のPrefabに一括書き出し" class="dennoko-button" style="margin-top: 4px;" />
+                <ui:Label name="extract-status" class="mm-note" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
-        <!-- 2. 範囲選択 -->
-        <ui:VisualElement class="dennoko-card">
-            <ui:TextElement name="header-selection" text="範囲選択" class="dennoko-section-title dennoko-card-header" />
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="pick-uv" text="UVアイランド" class="mm-fill" />
-                <ui:Button name="pick-poly" text="つながったポリゴン" class="mm-fill" />
+        <!-- カラー設定（一時タブ）コンテナ -->
+        <ui:VisualElement name="color-options-view" style="display: none;">
+            <ui:VisualElement class="dennoko-card">
+                <ui:VisualElement class="mm-row" style="justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <ui:TextElement name="header-color-options" text="カラー設定" class="dennoko-section-title" style="margin: 0;" />
+                    <ui:Button name="color-options-back-button" text="← 戻る" class="mm-fixed" />
+                </ui:VisualElement>
+
+                <!-- UV / テクスチャプレビュー設定 -->
+                <ui:TextElement name="header-uv-colors" text="UV・テクスチャプレビュー" class="dennoko-card-header" style="margin-top: 4px;" />
+                <uie:ColorField name="uv-wire-color-field" label="テクスチャのワイヤーフレーム" />
+                <uie:ColorField name="uv-selected-color-field" label="選択中の色" />
+
+                <ui:VisualElement class="dennoko-separator" style="margin: 12px 0 8px 0;" />
+
+                <!-- シーンビューオーバーレイ設定 -->
+                <ui:TextElement name="header-scene-colors" text="シーンビューオーバーレイ" class="dennoko-card-header" />
+                <uie:ColorField name="scene-hover-color-field" label="カーソル位置のワイヤーフレーム" />
+                <uie:ColorField name="scene-selected-color-field" label="選択中の色" />
+
+                <ui:VisualElement class="mm-row" style="margin-top: 16px;">
+                    <ui:Button name="color-reset-button" text="デフォルトに戻す" class="mm-fill" />
+                    <ui:Button name="color-close-button" text="閉じる" class="mm-fill dennoko-button-primary" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement class="mm-row" style="margin-top: 4px;">
-                <ui:Button name="select-all" text="全選択" class="mm-fill" />
-                <ui:Button name="select-none" text="クリア" class="mm-fill" />
-                <ui:Button name="select-invert" text="反転" class="mm-fill" />
-            </ui:VisualElement>
-
-            <!-- UV プレビューホスト -->
-            <ui:VisualElement name="uv-preview-host" class="mm-preview" />
-
-            <ui:VisualElement class="mm-row">
-                <ui:Button name="scene-select-toggle" text="シーンでクリック選択: ON" class="mm-fill" />
-                <ui:Toggle name="opt-scene-xray" label="ワイヤーフレーム透過" value="true" />
-            </ui:VisualElement>
-            <ui:Label name="selection-info" class="mm-note" />
-        </ui:VisualElement>
-
-        <!-- 3. 出力設定 -->
-        <ui:VisualElement class="dennoko-card">
-            <ui:TextElement name="header-prefab-output" text="Prefab化" class="dennoko-section-title dennoko-card-header" />
-            <ui:TextField name="part-name" label="Prefab名" value="MeshPart" />
-            <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MeshSplitter_Output" />
-
-            <ui:Button name="extract-button" text="選択範囲をパーツPrefabとして書き出し" class="dennoko-button-primary" style="margin-top: 8px; height: 32px;" />
-            <ui:Button name="extract-submesh-button" text="全サブメッシュを個別のPrefabに一括書き出し" class="dennoko-button" style="margin-top: 4px;" />
-            <ui:Label name="extract-status" class="mm-note" />
         </ui:VisualElement>
     </ui:ScrollView>
 </ui:UXML>

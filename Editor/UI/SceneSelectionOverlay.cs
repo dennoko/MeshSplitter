@@ -163,7 +163,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (_selectedLines.Length > 0)
             {
-                Handles.color = SelectedColor;
+                Handles.color = MmColorSettings.SceneSelectedColor;
                 for (int i = 0; i < _selectedLines.Length; i += 2)
                 {
                     Handles.DrawLine(_selectedLines[i], _selectedLines[i + 1], 2.0f);
@@ -172,7 +172,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (_hoverLines.Length > 0 && _hoverGroup >= 0)
             {
-                Handles.color = HoverColor;
+                Handles.color = MmColorSettings.SceneHoverColor;
                 for (int i = 0; i < _hoverLines.Length; i += 2)
                 {
                     Handles.DrawLine(_hoverLines[i], _hoverLines[i + 1], 2.0f);

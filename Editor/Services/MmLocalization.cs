@@ -56,6 +56,17 @@ namespace Dennokoworks.MeshModularizer
             public string btn_scene_select_on;
             public string btn_scene_select_off;
             public string toggle_scene_xray;
+            public string btn_color_options;
+            public string header_color_options;
+            public string btn_color_back;
+            public string header_uv_colors;
+            public string label_uv_wire_color;
+            public string label_uv_selected_color;
+            public string header_scene_colors;
+            public string label_scene_hover_color;
+            public string label_scene_selected_color;
+            public string btn_color_reset;
+            public string btn_color_close;
             public string selection_info_unanalyzed;
             public string selection_info_unselected;
             public string selection_info_format;

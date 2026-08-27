@@ -178,6 +178,9 @@ namespace Dennokoworks.MeshModularizer
 
                 // 面ごとに直接ブレンドすると、隣り合う三角形が共有する辺や UV が重なる部分で
                 // 二重に塗られてしまう。一度カバレッジを取ってから、ピクセルごとに一回だけ合成する。
+                Color32 selectedColor = MmColorSettings.UvSelectedColor;
+                Color32 wireColor = MmColorSettings.UvWireColor;
+
                 var coverage = new byte[width * height];
                 for (int i = 0; i < triangles.Length; i++)
                 {
@@ -196,7 +199,7 @@ namespace Dennokoworks.MeshModularizer
 
                     bool selected = coverage[i] == CoverageSelected;
                     int alpha = selected ? selectedAlpha : unselectedAlpha;
-                    Color32 color = selected ? SelectedColor : FillColor;
+                    Color32 color = selected ? selectedColor : FillColor;
                     pixels[i] = alpha >= 255 ? color : Blend(pixels[i], color, alpha);
                 }
 
@@ -205,7 +208,7 @@ namespace Dennokoworks.MeshModularizer
                     for (int i = 0; i < triangles.Length; i++)
                     {
                         bool selected = _selection.Contains(groupOf[i]);
-                        var color = selected ? SelectedWireColor : WireColor;
+                        var color = selected ? selectedColor : wireColor;
                         var t = triangles[i];
                         var p0 = ToPixel(t.U0, width, height);
                         var p1 = ToPixel(t.U1, width, height);

@@ -49,6 +49,17 @@ namespace Dennokoworks.MeshModularizer
         private Button _extractSubmeshBtn;
         private Label _extractStatusLabel;
 
+        private VisualElement _mainView;
+        private VisualElement _colorOptionsView;
+        private Button _colorOptionsBtn;
+        private Button _colorOptionsBackBtn;
+        private Button _colorCloseBtn;
+        private Button _colorResetBtn;
+        private ColorField _uvWireColorField;
+        private ColorField _uvSelectedColorField;
+        private ColorField _sceneHoverColorField;
+        private ColorField _sceneSelectedColorField;
+
         private Label _versionLabel;
         private Button _versionReloadBtn;
         private Button _langButton;
@@ -64,10 +75,12 @@ namespace Dennokoworks.MeshModularizer
         {
             _sceneOverlay = new SceneSelectionOverlay(Dispatch);
             MmLocalization.OnLanguageChanged += HandleLanguageChanged;
+            MmColorSettings.OnColorsChanged += HandleColorsChanged;
         }
 
         private void OnDisable()
         {
+            MmColorSettings.OnColorsChanged -= HandleColorsChanged;
             MmLocalization.OnLanguageChanged -= HandleLanguageChanged;
             _sceneOverlay?.Dispose();
             _sceneOverlay = null;
@@ -77,6 +90,12 @@ namespace Dennokoworks.MeshModularizer
         {
             ApplyLocalization();
             Render();
+        }
+
+        private void HandleColorsChanged()
+        {
+            Render();
+            SceneView.RepaintAll();
         }
 
         public void CreateGUI()
@@ -200,6 +219,78 @@ namespace Dennokoworks.MeshModularizer
             _extractSubmeshBtn.clicked += () => Dispatch(new CmdExtractPerSubmesh());
 
             _extractStatusLabel = root.Q<Label>("extract-status");
+
+            _mainView = root.Q<VisualElement>("main-view");
+            _colorOptionsView = root.Q<VisualElement>("color-options-view");
+
+            _colorOptionsBtn = root.Q<Button>("color-options-button");
+            if (_colorOptionsBtn != null)
+            {
+                _colorOptionsBtn.clicked += () => ShowColorOptions(true);
+            }
+
+            _colorOptionsBackBtn = root.Q<Button>("color-options-back-button");
+            if (_colorOptionsBackBtn != null)
+            {
+                _colorOptionsBackBtn.clicked += () => ShowColorOptions(false);
+            }
+
+            _colorCloseBtn = root.Q<Button>("color-close-button");
+            if (_colorCloseBtn != null)
+            {
+                _colorCloseBtn.clicked += () => ShowColorOptions(false);
+            }
+
+            _colorResetBtn = root.Q<Button>("color-reset-button");
+            if (_colorResetBtn != null)
+            {
+                _colorResetBtn.clicked += () =>
+                {
+                    MmColorSettings.ResetToDefaults();
+                    SyncColorFields();
+                };
+            }
+
+            _uvWireColorField = root.Q<ColorField>("uv-wire-color-field");
+            if (_uvWireColorField != null)
+            {
+                _uvWireColorField.RegisterValueChangedCallback(evt => MmColorSettings.UvWireColor = evt.newValue);
+            }
+
+            _uvSelectedColorField = root.Q<ColorField>("uv-selected-color-field");
+            if (_uvSelectedColorField != null)
+            {
+                _uvSelectedColorField.RegisterValueChangedCallback(evt => MmColorSettings.UvSelectedColor = evt.newValue);
+            }
+
+            _sceneHoverColorField = root.Q<ColorField>("scene-hover-color-field");
+            if (_sceneHoverColorField != null)
+            {
+                _sceneHoverColorField.RegisterValueChangedCallback(evt => MmColorSettings.SceneHoverColor = evt.newValue);
+            }
+
+            _sceneSelectedColorField = root.Q<ColorField>("scene-selected-color-field");
+            if (_sceneSelectedColorField != null)
+            {
+                _sceneSelectedColorField.RegisterValueChangedCallback(evt => MmColorSettings.SceneSelectedColor = evt.newValue);
+            }
+
+            SyncColorFields();
+        }
+
+        private void ShowColorOptions(bool show)
+        {
+            if (_mainView != null) _mainView.style.display = show ? DisplayStyle.None : DisplayStyle.Flex;
+            if (_colorOptionsView != null) _colorOptionsView.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (show) SyncColorFields();
+        }
+
+        private void SyncColorFields()
+        {
+            _uvWireColorField?.SetValueWithoutNotify(MmColorSettings.UvWireColor);
+            _uvSelectedColorField?.SetValueWithoutNotify(MmColorSettings.UvSelectedColor);
+            _sceneHoverColorField?.SetValueWithoutNotify(MmColorSettings.SceneHoverColor);
+            _sceneSelectedColorField?.SetValueWithoutNotify(MmColorSettings.SceneSelectedColor);
         }
 
         private void Dispatch(IMmAction action)
@@ -732,6 +823,26 @@ namespace Dennokoworks.MeshModularizer
 
             if (_extractBtn != null) _extractBtn.text = MmLocalization.Tr("btn_extract_part");
             if (_extractSubmeshBtn != null) _extractSubmeshBtn.text = MmLocalization.Tr("btn_extract_submesh");
+
+            if (_colorOptionsBtn != null) _colorOptionsBtn.text = MmLocalization.Tr("btn_color_options");
+            if (_colorOptionsBackBtn != null) _colorOptionsBackBtn.text = MmLocalization.Tr("btn_color_back");
+            if (_colorResetBtn != null) _colorResetBtn.text = MmLocalization.Tr("btn_color_reset");
+            if (_colorCloseBtn != null) _colorCloseBtn.text = MmLocalization.Tr("btn_color_close");
+
+            var hColorOpt = root.Q<TextElement>("header-color-options");
+            if (hColorOpt != null) hColorOpt.text = MmLocalization.Tr("header_color_options");
+
+            var hUvColors = root.Q<TextElement>("header-uv-colors");
+            if (hUvColors != null) hUvColors.text = MmLocalization.Tr("header_uv_colors");
+
+            if (_uvWireColorField != null) _uvWireColorField.label = MmLocalization.Tr("label_uv_wire_color");
+            if (_uvSelectedColorField != null) _uvSelectedColorField.label = MmLocalization.Tr("label_uv_selected_color");
+
+            var hSceneColors = root.Q<TextElement>("header-scene-colors");
+            if (hSceneColors != null) hSceneColors.text = MmLocalization.Tr("header_scene_colors");
+
+            if (_sceneHoverColorField != null) _sceneHoverColorField.label = MmLocalization.Tr("label_scene_hover_color");
+            if (_sceneSelectedColorField != null) _sceneSelectedColorField.label = MmLocalization.Tr("label_scene_selected_color");
 
             ApplyVersionLabel();
         }
