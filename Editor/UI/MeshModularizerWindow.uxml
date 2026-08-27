@@ -16,6 +16,7 @@
             <ui:VisualElement class="mm-row">
                 <uie:ObjectField name="source-field" class="mm-grow" allow-scene-objects="true" />
                 <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" />
+                <ui:Button name="source-reload-button" text="↻" class="mm-icon" tooltip="切り出し元メッシュを再読み込み" />
             </ui:VisualElement>
             <ui:DropdownField name="submesh-dropdown" label="対象サブメッシュ" />
             <ui:Label name="source-info" class="mm-note" />

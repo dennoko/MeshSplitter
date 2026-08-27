@@ -126,6 +126,12 @@ namespace Dennokoworks.MeshModularizer
 
             root.Q<Button>("source-from-selection").clicked += () => Dispatch(new CmdPickSourceFromSelection());
 
+            var sourceReloadBtn = root.Q<Button>("source-reload-button");
+            if (sourceReloadBtn != null)
+            {
+                sourceReloadBtn.clicked += () => Dispatch(new CmdAnalyzeSource());
+            }
+
             _pickUvBtn = root.Q<Button>("pick-uv");
             _pickUvBtn.clicked += () => Dispatch(new SetPickMode(MmPickMode.UvIsland));
 
@@ -199,6 +205,11 @@ namespace Dennokoworks.MeshModularizer
                     break;
 
                 case CmdAnalyzeSource _:
+                    if (next.Source == null && _sourceField != null && _sourceField.value != null)
+                    {
+                        next.Source = _sourceField.value as Renderer;
+                    }
+                    _submeshChoiceCount = -1;
                     AnalyzeMesh(next);
                     break;
 
