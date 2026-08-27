@@ -161,13 +161,19 @@ namespace Dennokoworks.MeshModularizer
             if (_selectedLines.Length > 0)
             {
                 Handles.color = SelectedColor;
-                Handles.DrawLines(_selectedLines);
+                for (int i = 0; i < _selectedLines.Length; i += 2)
+                {
+                    Handles.DrawLine(_selectedLines[i], _selectedLines[i + 1], 2.0f);
+                }
             }
 
             if (_hoverLines.Length > 0 && _hoverGroup >= 0)
             {
                 Handles.color = HoverColor;
-                Handles.DrawLines(_hoverLines);
+                for (int i = 0; i < _hoverLines.Length; i += 2)
+                {
+                    Handles.DrawLine(_hoverLines[i], _hoverLines[i + 1], 2.0f);
+                }
             }
 
             Handles.zTest = prevZTest;

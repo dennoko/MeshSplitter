@@ -10,15 +10,15 @@
     <ui:VisualElement class="dennoko-separator" />
 
     <ui:ScrollView class="dennoko-scroll mm-grow">
-        <!-- 1. 切り出し元メッシュ -->
+        <!-- 1. 対象メッシュ -->
         <ui:VisualElement class="dennoko-card">
-            <ui:TextElement text="切り出し元メッシュ" class="dennoko-heading-2" />
+            <ui:TextElement text="対象メッシュ" class="dennoko-heading-2" />
             <ui:VisualElement class="mm-row">
                 <uie:ObjectField name="source-field" class="mm-grow" allow-scene-objects="true" />
-                <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" />
-                <ui:Button name="source-reload-button" text="↻" class="mm-icon" tooltip="切り出し元メッシュを再読み込み" />
+                <ui:Button name="source-from-selection" text="選択から取得" class="mm-fixed" tooltip="選択中のメッシュをセットします" />
+                <ui:Button name="source-reload-button" text="↻" class="mm-icon" tooltip="対象メッシュを再読み込み" />
             </ui:VisualElement>
-            <ui:DropdownField name="submesh-dropdown" label="対象サブメッシュ" />
+            <ui:DropdownField name="submesh-dropdown" label="サブメッシュを指定" />
             <ui:Label name="source-info" class="mm-note" />
         </ui:VisualElement>
 
@@ -27,7 +27,7 @@
             <ui:TextElement text="範囲選択" class="dennoko-heading-2" />
             <ui:VisualElement class="mm-row">
                 <ui:Button name="pick-uv" text="UVアイランド" class="mm-fill" />
-                <ui:Button name="pick-poly" text="連結ポリゴン" class="mm-fill" />
+                <ui:Button name="pick-poly" text="つながったポリゴン" class="mm-fill" />
             </ui:VisualElement>
             <ui:VisualElement class="mm-row" style="margin-top: 4px;">
                 <ui:Button name="select-all" text="全選択" class="mm-fill" />
@@ -40,15 +40,15 @@
 
             <ui:VisualElement class="mm-row">
                 <ui:Button name="scene-select-toggle" text="シーンでクリック選択: ON" class="mm-fill" />
-                <ui:Toggle name="opt-scene-xray" label="X-Ray (透過)" value="true" />
+                <ui:Toggle name="opt-scene-xray" label="ワイヤーフレーム透過" value="true" />
             </ui:VisualElement>
             <ui:Label name="selection-info" class="mm-note" />
         </ui:VisualElement>
 
         <!-- 3. 出力設定 -->
         <ui:VisualElement class="dennoko-card">
-            <ui:TextElement text="パーツ出力" class="dennoko-heading-2" />
-            <ui:TextField name="part-name" label="パーツ名" value="MeshPart" />
+            <ui:TextElement text="Prefab化" class="dennoko-heading-2" />
+            <ui:TextField name="part-name" label="Prefab名" value="MeshPart" />
             <ui:TextField name="output-folder" label="保存先フォルダ" value="Assets/MeshModularizer_Output" />
 
             <ui:Button name="extract-button" text="選択範囲をパーツPrefabとして書き出し" class="dennoko-button-primary" style="margin-top: 8px; height: 32px;" />

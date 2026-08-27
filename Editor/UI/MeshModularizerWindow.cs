@@ -464,12 +464,12 @@ namespace Dennokoworks.MeshModularizer
 
         private string DescribeSource()
         {
-            if (_state.Source == null) return "切り出し元の Renderer (SkinnedMeshRenderer / MeshRenderer) を指定してください。";
+            if (_state.Source == null) return "対象の Renderer (SkinnedMeshRenderer / MeshRenderer) を指定してください。";
             if (_state.TopologyError != null) return _state.TopologyError;
             if (_state.Topology == null) return "解析中...";
 
             var t = _state.Topology;
-            return $"三角形 {t.Triangles.Length} / UVアイランド {t.UvIslandCount} / 連結ポリゴン {t.PolyGroupCount}"
+            return $"三角形 {t.Triangles.Length} / UVアイランド {t.UvIslandCount} / つながったポリゴン {t.PolyGroupCount}"
                    + (t.HasUv ? "" : " (UV0 なし)");
         }
 

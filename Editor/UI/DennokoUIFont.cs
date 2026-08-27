@@ -25,7 +25,8 @@ namespace Dennokoworks.MeshModularizer
         private const string WarmupJapanese =
             "適用保存解除追加削除設定選択中対象有効無効表示非切替更新確認取消閉開始了" +
             "はいいえ完了失敗警告情報エラー成功準備実行処理読込書出" +
-            "パーツモジュールメッシュサブメッシュアイランドポリゴン色合わせ反転ベイク同期コライダーアバタープリセット三角形元操作未配置階層最適化維持プロキシ";
+            "パーツモジュールメッシュサブメッシュアイランドポリゴン色合わせ反転ベイク同期コライダーアバタープリセット三角形元操作未配置階層最適化維持プロキシ" +
+            "つながった透過枠指定";
 
         private static FontAsset _font;
         private static bool _unavailable;
