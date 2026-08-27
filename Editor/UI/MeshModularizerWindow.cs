@@ -56,8 +56,6 @@ namespace Dennokoworks.MeshModularizer
             LocalVersion = MeshModularizerVersion.Current
         };
 
-        private int _submeshChoiceCount = -1;
-
         private void OnEnable()
         {
             _sceneOverlay = new SceneSelectionOverlay(Dispatch);
@@ -73,7 +71,6 @@ namespace Dennokoworks.MeshModularizer
 
         private void HandleLanguageChanged()
         {
-            _submeshChoiceCount = -1;
             ApplyLocalization();
             Render();
         }
@@ -233,7 +230,6 @@ namespace Dennokoworks.MeshModularizer
                     {
                         next.Source = _sourceField.value as Renderer;
                     }
-                    _submeshChoiceCount = -1;
                     AnalyzeMesh(next);
                     break;
 
@@ -531,26 +527,18 @@ namespace Dennokoworks.MeshModularizer
             Mesh mesh = GetSharedMesh(_state.Source);
 
             int count = mesh != null ? mesh.subMeshCount : 0;
-            if (count != _submeshChoiceCount || _submeshDropdown.choices == null || _submeshDropdown.choices.Count == 0)
+            var choices = new List<string> { MmLocalization.Tr("submesh_choice_all") };
+            var materials = _state.Source != null ? _state.Source.sharedMaterials : Array.Empty<Material>();
+            for (int i = 0; i < count; i++)
             {
-                var choices = new List<string> { MmLocalization.Tr("submesh_choice_all") };
-                var materials = _state.Source != null ? _state.Source.sharedMaterials : Array.Empty<Material>();
-                for (int i = 0; i < count; i++)
-                {
-                    string matName = i < materials.Length && materials[i] != null ? materials[i].name : "(no material)";
-                    choices.Add($"{i}: {matName}");
-                }
-                _submeshDropdown.choices = choices;
-                _submeshChoiceCount = count;
+                string matName = i < materials.Length && materials[i] != null ? materials[i].name : "(no material)";
+                choices.Add($"{i}: {matName}");
             }
+            _submeshDropdown.choices = choices;
 
-            var currentChoices = _submeshDropdown.choices;
-            if (currentChoices != null && currentChoices.Count > 0)
-            {
-                int selected = _state.SourceSubmesh < 0 ? 0 : _state.SourceSubmesh + 1;
-                if (selected < 0 || selected >= currentChoices.Count) selected = 0;
-                _submeshDropdown.SetValueWithoutNotify(currentChoices[selected]);
-            }
+            int selected = _state.SourceSubmesh < 0 ? 0 : _state.SourceSubmesh + 1;
+            if (selected < 0 || selected >= choices.Count) selected = 0;
+            _submeshDropdown.SetValueWithoutNotify(choices[selected]);
             _submeshDropdown.SetEnabled(count > 1);
         }
 
