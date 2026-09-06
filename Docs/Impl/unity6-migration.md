@@ -3,12 +3,12 @@
 - 調査日: 2026-09-06
 - 現行: Unity 2022.3.22f1 / Built-in RP
 - 目標: Unity 6 (6000.0 LTS) / **BiRP 維持**
-- 共通調査: [`../../../Docs/Impl/unity6-migration-overview.md`](../../../Docs/Impl/unity6-migration-overview.md)
+- 共通調査: [`unity6-migration-overview.md`](unity6-migration-overview.md)
 
 ## 判定
 
 ✅ **対応済** — Unity 6 非対応の API は **0 件**。修正すべきコードはない。
-VRChat SDK への依存もすべてリフレクション経由のため、**SDK の Unity 6 対応を待たずに検証できる**。
+VRChat SDK への依存もすべてリフレクション経由のため、**SDK 非依存のため単体で検証できる**。
 
 ## 構成
 
@@ -45,7 +45,7 @@ private const string VrcConstraintBaseTypeName = "VRC.Dynamics.VRCConstraintBase
 - Unity 6 で SDK のアセンブリ構成が変わっても、**型名が維持される限り動作する**。
 - `VRCConstraintBase` にも対応しており、VRChat Constraints にも追従済み。
 
-**修正不要。** SDK 非対応期間でもコンパイルできる、移行観点で堅牢な実装。
+**修正不要。** SDK のバージョン差異に強い、移行観点で堅牢な実装。
 
 ### 2. `NativeArray` によるボーンウェイト操作（✅ 影響なし）
 
@@ -166,7 +166,7 @@ foreach (var fa in Resources.FindObjectsOfTypeAll<FontAsset>())
 
 ### フェーズ 2（Unity 6 検証プロジェクト・先行実施可）
 
-**asmdef が外部を一切参照していないため、SDK の Unity 6 対応を待たずに
+**asmdef が外部を一切参照していないため、SDK に依存せず
 検証を開始できる。** Unity 6 の空プロジェクトに `MeshSplitter/` をコピーして検証する。
 **共通調査フェーズ 2 の先行検証対象。**
 
