@@ -80,6 +80,7 @@ namespace Dennokoworks.MeshModularizer
             public string section_prefab_output;
             public string label_part_name;
             public string label_output_folder;
+            public string tooltip_browse_output_folder;
             public string btn_extract_part;
             public string btn_extract_submesh;
 
@@ -96,6 +97,9 @@ namespace Dennokoworks.MeshModularizer
             public string err_request_null;
             public string err_renderer_not_mapped;
             public string err_prefab_save_failed;
+            public string err_invalid_output_folder;
+            public string err_folder_outside_project;
+            public string err_output_folder_create_failed;
             public string err_unknown;
             public string note_scope_not_prefab;
             public string note_scope_expanded;
@@ -108,6 +112,7 @@ namespace Dennokoworks.MeshModularizer
             public string dialog_no_triangles;
             public string dialog_extract_failed;
             public string dialog_complete_title;
+            public string dialog_select_output_folder;
             public string extract_success_format;
             public string submesh_batch_success_format;
             public string submesh_batch_progress_format;

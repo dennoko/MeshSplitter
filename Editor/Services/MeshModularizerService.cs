@@ -64,9 +64,10 @@ namespace Dennokoworks.MeshModularizer
             if (request.SourceRenderer == null) return Fail(MmLocalization.Tr("err_no_source_renderer"));
 
             string partName = MmPaths.SanitizeFileName(request.PartName, "Part");
-            string outputFolder = string.IsNullOrEmpty(request.OutputFolder)
-                ? MmPaths.DefaultOutputFolder
-                : request.OutputFolder;
+            if (!MmPaths.TryNormalizeAssetFolder(request.OutputFolder, out string outputFolder))
+            {
+                return Fail(MmLocalization.Tr("err_invalid_output_folder", request.OutputFolder ?? string.Empty));
+            }
 
             // 1. メッシュの切り出し (元アセットには触れない)
             var split = MeshSplitter.Split(
@@ -136,6 +137,12 @@ namespace Dennokoworks.MeshModularizer
                 }
 
                 // 7. メッシュアセットの保存
+                // immutable なパッケージ配下などでは AssetDatabase がフォルダを作れない。
+                // そのまま進むと CreateAsset が理由の分からないまま失敗するので、ここで止める。
+                if (!MmPaths.EnsureFolderExists(outputFolder))
+                {
+                    return Fail(MmLocalization.Tr("err_output_folder_create_failed", outputFolder));
+                }
                 string meshSubFolder = MmPaths.SubFolder(outputFolder, MmPaths.MeshesSubFolder);
                 string meshPath = MmPaths.UniqueAssetPath(meshSubFolder, partName + "_Mesh", ".asset");
                 AssetDatabase.CreateAsset(split.Mesh, meshPath);

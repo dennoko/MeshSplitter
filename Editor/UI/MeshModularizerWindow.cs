@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -46,6 +47,7 @@ namespace Dennokoworks.MeshModularizer
         private Label _selectionInfoLabel;
         private TextField _partNameField;
         private TextField _outputFolderField;
+        private Button _outputFolderBrowseBtn;
         private Button _extractBtn;
         private Button _extractSubmeshBtn;
         private Label _extractStatusLabel;
@@ -231,6 +233,59 @@ namespace Dennokoworks.MeshModularizer
 
             _outputFolderField = root.Q<TextField>("output-folder");
             _outputFolderField.RegisterValueChangedCallback(evt => Dispatch(new SetOutputFolder(evt.newValue)));
+            _outputFolderField.RegisterCallback<FocusOutEvent>(_ =>
+            {
+                if (_state == null) return;
+                // 空欄もデフォルトへ畳む。畳まないと表示と実際の出力先が食い違う。
+                if (MmPaths.TryNormalizeAssetFolder(_state.OutputFolder, out string normalized) &&
+                    normalized != _state.OutputFolder)
+                {
+                    Dispatch(new SetOutputFolder(normalized));
+                }
+            });
+
+            _outputFolderField.RegisterCallback<DragUpdatedEvent>(evt =>
+            {
+                if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                {
+                    var obj = DragAndDrop.objectReferences[0];
+                    string assetPath = AssetDatabase.GetAssetPath(obj);
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                        evt.StopPropagation();
+                    }
+                }
+            });
+
+            _outputFolderField.RegisterCallback<DragPerformEvent>(evt =>
+            {
+                if (DragAndDrop.objectReferences != null && DragAndDrop.objectReferences.Length > 0)
+                {
+                    var obj = DragAndDrop.objectReferences[0];
+                    string assetPath = AssetDatabase.GetAssetPath(obj);
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        if (!AssetDatabase.IsValidFolder(assetPath))
+                        {
+                            assetPath = Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
+                        }
+                        if (!string.IsNullOrEmpty(assetPath))
+                        {
+                            DragAndDrop.AcceptDrag();
+                            string normalized = MmPaths.NormalizeAssetFolder(assetPath);
+                            Dispatch(new SetOutputFolder(normalized));
+                            evt.StopPropagation();
+                        }
+                    }
+                }
+            });
+
+            _outputFolderBrowseBtn = root.Q<Button>("output-folder-browse-btn");
+            if (_outputFolderBrowseBtn != null)
+            {
+                _outputFolderBrowseBtn.clicked += OnBrowseOutputFolder;
+            }
 
             _extractBtn = root.Q<Button>("extract-button");
             _extractBtn.clicked += () => Dispatch(new CmdExtractPart());
@@ -558,6 +613,8 @@ namespace Dennokoworks.MeshModularizer
             var res = MeshModularizerService.Execute(request);
             if (res.Ok)
             {
+                // フィールドへの反映は Dispatch 末尾の Render() がまとめて行う。
+                state.OutputFolder = MmPaths.NormalizeAssetFolder(state.OutputFolder);
                 state.LastMessage = DescribeResult(res);
                 state.LastError = null;
                 var prefabAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(res.PrefabPath);
@@ -646,6 +703,8 @@ namespace Dennokoworks.MeshModularizer
 
             if (success > 0)
             {
+                // フィールドへの反映は Dispatch 末尾の Render() がまとめて行う。
+                state.OutputFolder = MmPaths.NormalizeAssetFolder(state.OutputFolder);
                 var folderAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(state.OutputFolder);
                 if (folderAsset != null)
                 {
@@ -669,6 +728,58 @@ namespace Dennokoworks.MeshModularizer
                 MmLocalization.Tr("dialog_complete_title"),
                 detail,
                 "OK");
+        }
+
+        private void OnBrowseOutputFolder()
+        {
+            string projectRoot = MmPaths.ProjectRoot;
+            string current = MmPaths.NormalizeAssetFolder(_state != null ? _state.OutputFolder : MmPaths.DefaultOutputFolder);
+            string initialAbs = Path.GetFullPath(Path.Combine(projectRoot, current)).Replace('\\', '/');
+            if (!Directory.Exists(initialAbs))
+            {
+                initialAbs = Application.dataPath;
+            }
+
+            string selected = EditorUtility.OpenFolderPanel(
+                MmLocalization.Tr("dialog_select_output_folder"),
+                initialAbs,
+                "");
+
+            if (string.IsNullOrEmpty(selected)) return;
+
+            selected = Path.GetFullPath(selected).Replace('\\', '/').TrimEnd('/');
+
+            // 書き出せるのは Assets/ と Packages/ の中だけ。プロジェクトルート基準で判定すると
+            // Library/ や Temp/ を選んだときに黙って Assets/Library のような別物へ化けてしまう。
+            string assetsRoot = Application.dataPath.Replace('\\', '/').TrimEnd('/');
+            string packagesRoot = projectRoot + "/Packages";
+            if (!IsSameOrUnder(selected, assetsRoot) && !IsSameOrUnder(selected, packagesRoot))
+            {
+                EditorUtility.DisplayDialog(
+                    MmLocalization.Tr("dialog_error_title"),
+                    MmLocalization.Tr("err_folder_outside_project"),
+                    "OK");
+                return;
+            }
+
+            string rel = selected.Substring(projectRoot.Length + 1);
+            if (!MmPaths.TryNormalizeAssetFolder(rel, out string normalized))
+            {
+                EditorUtility.DisplayDialog(
+                    MmLocalization.Tr("dialog_error_title"),
+                    MmLocalization.Tr("err_invalid_output_folder", selected),
+                    "OK");
+                return;
+            }
+
+            Dispatch(new SetOutputFolder(normalized));
+        }
+
+        /// <summary>path が root そのものか、その配下かを判定する。</summary>
+        private static bool IsSameOrUnder(string path, string root)
+        {
+            return path.Equals(root, StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
         }
 
         private void Render()
@@ -902,6 +1013,7 @@ namespace Dennokoworks.MeshModularizer
 
             if (_partNameField != null) _partNameField.label = MmLocalization.Tr("label_part_name");
             if (_outputFolderField != null) _outputFolderField.label = MmLocalization.Tr("label_output_folder");
+            if (_outputFolderBrowseBtn != null) _outputFolderBrowseBtn.tooltip = MmLocalization.Tr("tooltip_browse_output_folder");
 
             if (_extractBtn != null) _extractBtn.text = MmLocalization.Tr("btn_extract_part");
             if (_extractSubmeshBtn != null) _extractSubmeshBtn.text = MmLocalization.Tr("btn_extract_submesh");
